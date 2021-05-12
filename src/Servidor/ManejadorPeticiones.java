@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.UUID;
 
+import Entidades.BBDD;
 import Entidades.Coordenadas;
 import Entidades.DatosCliente;
 import Entidades.LittleEndian;
@@ -29,20 +30,17 @@ import Peticiones.RespuestaAutenticacion;
 
 public class ManejadorPeticiones implements Runnable {
 	
-	private Hashtable<String,String> tablaUsuarios;
 	private ArrayList<DatosCliente> listaDatosClientes;
 	private ArrayList<String> listaClientes;
 	private Socket s;
+	private Connection conn; //Conexión a la BBDD
 	
-	public ManejadorPeticiones(ArrayList<DatosCliente> listaDatosClientes, ArrayList<String> listaUsuarios, Socket s) {
+	public ManejadorPeticiones(ArrayList<DatosCliente> listaDatosClientes, ArrayList<String> listaUsuarios, Socket s, Connection conn) {
 		
 		this.listaDatosClientes = listaDatosClientes;
 		this.listaClientes 		= listaUsuarios;
 		this.s 			  		= s;
-		
-		//Simulamos la BBDD
-		this.tablaUsuarios = new Hashtable<String,String>();
-		this.tablaUsuarios.put("Pablo", "1234");
+		this.conn 				= conn;
 		
 	}
 	
@@ -55,7 +53,7 @@ public class ManejadorPeticiones implements Runnable {
 			
 			BufferedOutputStream bos = new BufferedOutputStream(s.getOutputStream());
 			DataOutputStream 	 dos = new DataOutputStream(bos);
-			
+					           
 			while(true){
 				
 				byte [] bytes = new byte[4];
@@ -73,88 +71,58 @@ public class ManejadorPeticiones implements Runnable {
 							Autenticacion peticionAutenticacion = Autenticacion.desaplanar(dis);
 							System.out.println(peticionAutenticacion);
 							
-							RespuestaAutenticacion mensajeRespuestaRegistro;
+							RespuestaAutenticacion mensajeRespuestaRegistro;														
 							
-							//Caso para usuarios no registrados
+							//Caso para usuarios no registrados, realizamos la comprobación accediendo a la BBDD 
 							
-							if (!this.tablaUsuarios.containsKey(peticionAutenticacion.getUsuario())){
+							BBDD consulta = new BBDD(conn);
+							
+							//Si se trata de un string vacio no existe usuario
+							
+							if (consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals("")){
 								
-								this.tablaUsuarios.put(peticionAutenticacion.getUsuario(), peticionAutenticacion.getContraseña());
+								//Si no existe le añadimos a la BBDD
+								
+								consulta.insertarUsuario(peticionAutenticacion.getUsuario(), peticionAutenticacion.getContraseña());
+																
+								//Le añadimos a nuestra lista de clientes activos
 								
 								listaClientes.add(peticionAutenticacion.getUsuario());
 								
-								DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
-								datos.anadirSocket(s);
-																							
-								/*
-								Con BBDD SQLSERVER
-								
-								Connection conn = null;
-								
-								  try {
-									  
-							            String dbURL = "jdbc:sqlserver://DESKTOP-FVD51I9\\MSSQLSERVER:1433";
-							            String user = "usuarioAPP";
-							            String pass = "psswrd";
-							            conn = DriverManager.getConnection(dbURL, user, pass);
-							            
-							            Statement st = conn.createStatement();
-							           
-							            String INSERT = "INSERT INTO [Usuarios].[dbo].[usuarios] VALUES ('" + peticion.getUsuario() +"','" + peticion.getContraseña() +"',getdate())";
-
-							            st.execute(INSERT);
-							            
-							            String SELECT = "SELECT * FROM [Usuarios].[dbo].[usuarios]";
-							            
-							            ResultSet res = st.executeQuery(SELECT); 
-							            
-							            while(res.next()) {
-							            	String nombre = res.getString("usuario"); 
-							            	System.out.println(nombre);
-							            }
-							 
-							        } catch (SQLException ex) {
-							            ex.printStackTrace();
-							        } finally {
-							            try {
-							                if (conn != null && !conn.isClosed()) {
-							                    conn.close();
-							                }
-							            } catch (SQLException ex) {
-							                ex.printStackTrace();
-							            }
-							        }
-								
-								*/
-								 															
 								System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
 								System.out.println(listaClientes);
 								
-								System.out.println("------------ BASE DE DATOS USUARIOS -------------");
-								System.out.println(this.tablaUsuarios);
+								//Introducimos en nuestra estructura todos los datos de los clientes
 								
-								
+								DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
+								datos.anadirSocket(s);
+																															 																																						
 								mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");
 								mensajeRespuestaRegistro.generarIdSesion();
 								
 								datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
 								listaDatosClientes.add(datos);
+								
 								//En los datos tenemos guardados el nick, el idSesion, el socket 
 							}
+							
+							else if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals("error")) {
+								mensajeRespuestaRegistro = new RespuestaAutenticacion("error");
+								//Enviamos mensaje de error
+							}
 		
-							else  //Comprobamos si la contraseña es correcta ya que se trata de un nombre de usuario registrado
+							else  //Recibimos una contraseña y comprobamos si coincide con la de la BBDD
 							{
 								
-								if(this.tablaUsuarios.get(peticionAutenticacion.getUsuario()).equals(peticionAutenticacion.getContraseña())) {
-																		
+								if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals(peticionAutenticacion.getContraseña())) {
+									
+									//Si coincide guardamos todos los datos del cliente
+									
 									DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
 									datos.anadirSocket(s);
 									
 									System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
-									System.out.println(listaClientes);
-									
-									System.out.println("------------ BASE DE DATOS USUARIOS -------------");
-									System.out.println(this.tablaUsuarios);
+									System.out.println(listaClientes);								
 									
 									mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");									
 									mensajeRespuestaRegistro.generarIdSesion();
@@ -164,6 +132,8 @@ public class ManejadorPeticiones implements Runnable {
 									
 								}
 								else {
+									
+									//Si no coincide mandamos la respuesta KO
 									
 									mensajeRespuestaRegistro = new RespuestaAutenticacion("KO");
 									

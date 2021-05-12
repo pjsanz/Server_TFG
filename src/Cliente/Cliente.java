@@ -139,13 +139,17 @@ public class Cliente {
 							System.out.println("Id Sesion: " + idSesion);
 							
 						}
-						else {
+						else if (respuestaPeticion.getRespuesta().equals("KO")){
 							
 							System.out.println("Contraseña incorrecta, nick ya existente!");					
+						}
+						else {
+							System.out.println("Error al realizar la autenticación");		
 						}
 						
 					}
 				}
+				
 				//Aqui tengo que recibir las coordenadas por parte del servidor 
 					
 				else if(logeado && peticionEnviada && (mensaje[0].equals("2"))) {
