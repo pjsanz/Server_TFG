@@ -181,22 +181,50 @@ public class ManejadorPeticiones implements Runnable {
 								
 								listaDatosClientes.set(indice, datosInicio);
 							
-							}
+							}							
 							
-																																	
-							//Ahora enviamos los datos de todos los clientes activos y su ultima coordenada, la más reciente en fecha
-							//Enviare coordenadas con usuario para saber quien es
-							//Lo mando todo en un unico string con delimitadores para hacer luego un split. 
-							//lo vamos añadiendo con el delimitador '||' para separar coordenadas de usuarios
-							//para separar coordenadas del campo usuario utilizaremos el separador '@'														
-							//No guardo en BBDD las coordenadas porque no quiero que sean datos que persistan.
-										
+							//Ahora enviamos los datos de todos los clientes activos y su ultima coordenada la ultima posicion en la lista
 							
+							//Mandamos en dos strigs Usuarios por un lado y coordenadas por otro
+							//Los usuarios estaran delimitados por: |
+							//Las coordenadas entre ellas por | y de los distintos usuarios por @
+							
+							//Enviamos todas, luego el cliente pasará de las suyas ya que hemos guardado mi nick y de ese hay que pasar.
+							
+							//La logica de las colisiones la hara el cliente cuando el servidor mande las coordenadas de todos			
+							
+							//No guardo en BBDD las coordenadas porque no quiero que sean datos que persistan van con la partida.
+																	
 							//Mandamos el tipo de mensaje EnvioCoordServidor con el string de coordenadas
 							
-							EnvioCoordServidor respuesta = new EnvioCoordServidor("Coordenadas");		
-							respuesta.aplanar(dos);
 							
+							String usuarios = "";
+							String coordenadasUsuarios = "";
+							
+							ArrayList<Coordenadas> listaAux = null;
+							Coordenadas coordAux = null;
+							
+							for (DatosCliente datos : listaDatosClientes) {
+								//Si el usuario esta activo en el juego empezamos a rellenar los strings a enviar		
+								
+						        if (datos.getEstado().equals("Activo") ){
+						        	
+						        	usuarios = usuarios + datos.getUsuario() + "&";
+						        	
+						        	listaAux = datos.getCoordenadas();
+						        	
+						        	coordAux = listaAux.get(listaAux.size()-1); //Obtenemos la ultima coordenada introducida la ultima posicion
+						        	
+						        	coordenadasUsuarios = coordenadasUsuarios + coordAux.getLatitud() + "," + coordAux.getLongitud() + "@";
+						        }				        
+						    }
+							
+
+			        		EnvioCoordServidor respuesta = new EnvioCoordServidor(usuarios,coordenadasUsuarios);	
+				        	respuesta.aplanar(dos);
+						     				        
+						    
+																																									
 							break;
 							
 						

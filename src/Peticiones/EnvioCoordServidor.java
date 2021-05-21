@@ -9,12 +9,15 @@ import Entidades.TipoMensaje;
 
 public class EnvioCoordServidor {
 
-	private String 		   coordenadasUsuarios;	
+	private String 		   usuarios;
+	private String 		   coordenadas;	
 	private TipoMensaje    identificadorPeticion;
 	
-	public EnvioCoordServidor(String coordenadasUsuarios){
+	public EnvioCoordServidor(String usuarios, String coordenadas){
 		
-		this.coordenadasUsuarios   = coordenadasUsuarios;
+		this.usuarios    = usuarios;
+		this.coordenadas = coordenadas;
+
 		this.identificadorPeticion = TipoMensaje.EnvioCoordServidor;
 	
 	}
@@ -28,18 +31,22 @@ public class EnvioCoordServidor {
 			int tipoOrdinal = this.identificadorPeticion.ordinal();
 			salida.write(LittleEndian.empaquetar(tipoOrdinal));
 									
-			longitud = this.coordenadasUsuarios.getBytes("UTF-8").length;
+			longitud = this.usuarios.getBytes("UTF-8").length;
 			salida.write(LittleEndian.empaquetar(longitud));
-			salida.write(this.coordenadasUsuarios.getBytes("UTF-8"));
-						
+			salida.write(this.usuarios.getBytes("UTF-8"));
+			
+			longitud = this.coordenadas.getBytes("UTF-8").length;
+			salida.write(LittleEndian.empaquetar(longitud));
+			salida.write(this.coordenadas.getBytes("UTF-8"));
+			
 			salida.flush();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	
-	}
-	
+	}	
+
 	public static EnvioCoordServidor desaplanar(InputStream entrada){
 		
 		EnvioCoordServidor peticion = null;
@@ -53,9 +60,17 @@ public class EnvioCoordServidor {
 			
 			byte[] peticionBytes = new byte[longitud];
 			entrada.read(peticionBytes);
-			String coordenadasUsuarios = new String(peticionBytes, "UTF-8");
+			String usuarios = new String(peticionBytes, "UTF-8");
 			
-			peticion = new EnvioCoordServidor(coordenadasUsuarios);
+			byte[] tamanoBytes2 = new byte[4];
+			entrada.read(tamanoBytes2);
+			longitud = LittleEndian.desempaquetar(tamanoBytes2);
+			
+			byte[] peticionBytes2 = new byte[longitud];
+			entrada.read(peticionBytes2);
+			String coordenadas = new String(peticionBytes2, "UTF-8");
+						
+			peticion = new EnvioCoordServidor(usuarios, coordenadas);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -64,12 +79,21 @@ public class EnvioCoordServidor {
 		return peticion;
 	}
 
-	public String getCoordenadasUsuarios() {
-		return this.coordenadasUsuarios;
+	public String getUsuarios() {
+		return usuarios;
 	}
-	
-	public void SetCoordenadasUsuarios(String coordenadasUsuarios) {
-		this.coordenadasUsuarios = coordenadasUsuarios;
+
+	public void setUsuarios(String usuarios) {
+		this.usuarios = usuarios;
 	}
+
+	public String getCoordenadas() {
+		return coordenadas;
+	}
+
+	public void setCoordenadas(String coordenadas) {
+		this.coordenadas = coordenadas;
+	}
+
 	
 }

@@ -77,6 +77,29 @@ public class DatosCliente {
 		
 	}
 
+	public Boolean buscarCoordenada(String coordenadaBusqueda) {
+		
+		String[] arrayCoord = coordenadaBusqueda.split(",", -1);
+		Boolean retorno = false;
+		
+		for (Coordenadas coordenadaCliente : this.coordenadas) 
+		{
+			if(coordenadaCliente.getLatitud().equals(arrayCoord[0]) && coordenadaCliente.getLongitud().equals(arrayCoord[1])) {
+				retorno = true;
+				break;
+			}
+		}
+		
+		return retorno;
+					
+	}
+	
+	public ArrayList<Coordenadas> getCoordenadas() {
+		
+		return this.coordenadas;
+		
+	}
+	
 }
 
 

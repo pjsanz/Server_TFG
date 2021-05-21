@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
+import Entidades.DatosCliente;
 import Peticiones.Autenticacion;
 import Peticiones.EnvioCoordServidor;
 import Peticiones.InicioPartida;
@@ -20,7 +22,7 @@ public class Cliente {
 	
 	private Socket s = null;
 	private BufferedReader bf;
-	private String idSesion;
+	private String idSesion;	
 	
 	public Cliente(String maquina, int puerto){
 		
@@ -40,6 +42,8 @@ public class Cliente {
 		boolean logeado         = false;
 		String  miUsuario       = null;
 		boolean peticionEnviada = false;
+		boolean juegoIniciado   = false;
+		ArrayList<DatosCliente> listaDatosRivales = new ArrayList<DatosCliente>();
 		
 		byte [] bytes;
 		int n;
@@ -152,7 +156,7 @@ public class Cliente {
 				
 				//Aqui tengo que recibir las coordenadas por parte del servidor 
 					
-				else if(logeado && peticionEnviada && (mensaje[0].equals("2"))) {
+				else if(!juegoIniciado && logeado && peticionEnviada && (mensaje[0].equals("2"))) {
 					
 					bytes = new byte[4];
 					n = -1;
@@ -162,12 +166,161 @@ public class Cliente {
 					if (n!=-1){
 						
 						EnvioCoordServidor respuestaPeticion = EnvioCoordServidor.desaplanar(dis);
-						System.out.println(respuestaPeticion);						//Aqui hago la logica
-						//Lo tendre que guardar en una estructura de datos también no? tengo que ver como hacer eso 
-						//Como comparar las colisiones
+												
+						System.out.println(respuestaPeticion.getUsuarios());
+						System.out.println(respuestaPeticion.getCoordenadas());
+						
+						//Descompongo y las añado a la lista de usuarios ya que la tengo vacia porque acabo de iniciar 
+						
+						//Añadimos usuarios menos nosotros mismos!
+						
+						DatosCliente datos = null;
+						
+						String[] usuarios = respuestaPeticion.getUsuarios().split("&");
+						String[] coordenadas = respuestaPeticion.getCoordenadas().split("@");
+						
+						String misUltimasCoordenadasEnviadas = "";
+						
+						for(int i = 0; i < usuarios.length; i++) {
+							if(!usuarios[i].equals(miUsuario)) {
+								 datos = new DatosCliente(usuarios[i]);
+								 datos.añadirCoordenadas(coordenadas[i]);
+								 listaDatosRivales.add(datos);
+							}
+							else 
+							{
+								misUltimasCoordenadasEnviadas = coordenadas[i];
+							}
+							
+						}
+						
+						//PINTAMOS COORDENADAS EN EL MAPA EN LA APP DE ANDROID
+						
+						//Realizamos la comparacion por si hubiera colision
+						
+						Boolean colision = false;
+						
+						for (DatosCliente datosCliente : listaDatosRivales) {
+							if(!datosCliente.getUsuario().equals(miUsuario)) {
+								if(datosCliente.buscarCoordenada(misUltimasCoordenadasEnviadas)){
+									colision = true;
+								}
+							}
+					    }
+						
+						System.out.println(colision);
+						
+						//Si hay colision envio el mensaje de colision al servidor
+						
+						if(colision) {
+							
+						}
+						else { //Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
+							
+						}
+						
+						//Hemos iniciado el juego 
+						
+						juegoIniciado = true;
 										
 					}
-					}else{
+					
+				else if(juegoIniciado) {
+					//Aqui recibimos el resto de coordenadas que son envios de cliente y responderemos con nuestras nuevas coordenadas
+					//a no ser que haya colision y enviemos el mensaje de colision
+					
+					bytes = new byte[4];
+					n = -1;
+					
+					n = dis.read(bytes);
+					
+					if (n!=-1){
+						
+						EnvioCoordServidor respuestaPeticion = EnvioCoordServidor.desaplanar(dis);
+						
+						System.out.println(respuestaPeticion.getUsuarios());
+						System.out.println(respuestaPeticion.getCoordenadas());
+						
+						//Descompongo y las añado a la lista de usuarios ya que la tengo vacia porque acabo de iniciar 
+						
+						//Añadimos usuarios menos nosotros mismos!
+						
+						DatosCliente datos = null;
+						
+						String[] usuarios = respuestaPeticion.getUsuarios().split("&");
+						String[] coordenadas = respuestaPeticion.getCoordenadas().split("@");
+						
+						String misUltimasCoordenadasEnviadas = "";
+						Boolean existeUsuario = false;
+						int     indiceUsuario = 0;
+						
+						for(int i = 0; i < usuarios.length; i++) {
+							if(!usuarios[i].equals(miUsuario)) {
+								
+								//Comprobamos si el usuario ya estaba añadido para no añadirle de nuevo
+								//Solamente introducimos su ultima coordenada
+								
+								for (DatosCliente datosClienteUsu : listaDatosRivales) {
+									if(datosClienteUsu.getUsuario().equals(usuarios[i])) {
+										existeUsuario = true;
+										break;
+									}
+									indiceUsuario++;
+								}
+								
+								if(!existeUsuario) {
+									 datos = new DatosCliente(usuarios[i]);
+									 datos.añadirCoordenadas(coordenadas[i]);
+									 listaDatosRivales.add(datos);
+								}
+								else {
+									datos = listaDatosRivales.get(indiceUsuario);
+									datos.añadirCoordenadas(coordenadas[i]);
+									
+									listaDatosRivales.set(indiceUsuario, datos);
+								}
+								
+							}
+							else 
+							{
+								misUltimasCoordenadasEnviadas = coordenadas[i];
+							}
+							
+						}
+						
+						//PINTAMOS COORDENADAS EN EL MAPA EN LA APP DE ANDROID
+						
+						//Realizamos la comparacion por si hubiera colision
+						
+						Boolean colision = false;
+						
+						for (DatosCliente datosCliente : listaDatosRivales) {
+							if(!datosCliente.getUsuario().equals(miUsuario)) {
+								if(datosCliente.buscarCoordenada(misUltimasCoordenadasEnviadas)){
+									colision = true;
+								}
+							}
+					    }
+						
+						System.out.println(colision);
+						
+						//Si hay colision envio el mensaje de colision al servidor
+						
+						if(colision) {
+							
+						}
+						else { //Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
+							
+						}
+						
+					}
+					
+					
+					
+					//Importante tengo que mirar a ver si hay usuarios nuevos para añadirlos a mi lista de rivales!!
+				}
+					
+				}else{
 						if (!logeado&&linea!=null){
 							System.out.println("Lo primero debes autenticarte para interactuar");
 						}else{
@@ -175,7 +328,9 @@ public class Cliente {
 								System.out.println("Comando no vÃ¡lido");
 							}
 						}
-					}
+				}
+				
+				
 				
 				} catch (IOException e) {
 					System.out.println(e);
