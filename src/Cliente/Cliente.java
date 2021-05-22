@@ -10,11 +10,15 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import Entidades.DatosCliente;
 import Peticiones.Autenticacion;
+import Peticiones.Colision;
+import Peticiones.EnvioCoordCliente;
 import Peticiones.EnvioCoordServidor;
 import Peticiones.InicioPartida;
+import Peticiones.Puntuacion;
 import Peticiones.RespuestaAutenticacion;
 
 
@@ -41,6 +45,7 @@ public class Cliente {
 		
 		boolean logeado         = false;
 		String  miUsuario       = null;
+		String  usuarioColision = null;
 		boolean peticionEnviada = false;
 		boolean juegoIniciado   = false;
 		ArrayList<DatosCliente> listaDatosRivales = new ArrayList<DatosCliente>();
@@ -107,10 +112,15 @@ public class Cliente {
 					}
 					
 					if (mensaje[0].equals("2")&&(logeado)){
-									
-						String ejemploCoord = "40.4165,-3.70256";
+											
+						//Parte de coordenadas sustituir en app por las coordenadas actuales
 						
-						InicioPartida peticion = new InicioPartida(mensaje[1], ejemploCoord);											
+						Integer latitudCoord = new Random().nextInt(5);
+						Integer longitudCoord = new Random().nextInt(5);
+						
+						String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
+						
+						InicioPartida peticion = new InicioPartida(idSesion, ejemploCoord);											
 						
 						peticion.aplanar(dos);						
 						
@@ -204,18 +214,32 @@ public class Cliente {
 							if(!datosCliente.getUsuario().equals(miUsuario)) {
 								if(datosCliente.buscarCoordenada(misUltimasCoordenadasEnviadas)){
 									colision = true;
+									usuarioColision = datosCliente.getUsuario();
 								}
 							}
 					    }
 						
 						System.out.println(colision);
 						
-						//Si hay colision envio el mensaje de colision al servidor
+						//Si hay colision envio el mensaje de colision al servidor 
+						//Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
 						
 						if(colision) {
+							Colision peticion = new Colision(idSesion, usuarioColision);																		
+							peticion.aplanar(dos);	
 							
+							juegoIniciado = false;
 						}
-						else { //Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
+						else { 
+							
+							Integer latitudCoord = new Random().nextInt(5);
+							Integer longitudCoord = new Random().nextInt(5);
+							
+							String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
+							
+							EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
+							
+							peticion.aplanar(dos);						
 							
 						}
 						
@@ -298,28 +322,53 @@ public class Cliente {
 							if(!datosCliente.getUsuario().equals(miUsuario)) {
 								if(datosCliente.buscarCoordenada(misUltimasCoordenadasEnviadas)){
 									colision = true;
+									usuarioColision = datosCliente.getUsuario();
 								}
 							}
 					    }
 						
 						System.out.println(colision);
 						
-						//Si hay colision envio el mensaje de colision al servidor
+						//Si hay colision envio el mensaje de colision al servidor, sino vuelvo a mandar mis coordenadas actuales
 						
 						if(colision) {
 							
+							Colision peticion = new Colision(idSesion, usuarioColision);																		
+							peticion.aplanar(dos);	
+							juegoIniciado = false;
 						}
-						else { //Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
+						else { 
 							
+							Integer latitudCoord = new Random().nextInt(5);
+							Integer longitudCoord = new Random().nextInt(5);
+							
+							String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
+							
+							EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
+							
+							peticion.aplanar(dos);					
 						}
 						
 					}
-					
-					
-					
-					//Importante tengo que mirar a ver si hay usuarios nuevos para añadirlos a mi lista de rivales!!
+															
 				}
+				else if(!juegoIniciado) //Recibo respuesta de puntuacion
+				{
 					
+					bytes = new byte[4];
+					n = -1;
+					
+					n = dis.read(bytes);
+					
+					if (n!=-1){		
+						
+						Puntuacion respuestaPuntuacion = Puntuacion.desaplanar(dis);
+						System.out.println(respuestaPuntuacion.getPuntuacion() + " Chocaste con:" + usuarioColision);
+
+					}
+					
+					//Recibimos el mensaje de puntuacion y le mostramos
+				}					
 				}else{
 						if (!logeado&&linea!=null){
 							System.out.println("Lo primero debes autenticarte para interactuar");
