@@ -21,8 +21,8 @@ public class BBDD {
 			  
 			Statement st = conn.createStatement();
 	           
-            String INSERT = "INSERT INTO [Usuarios].[dbo].[usuarios] "
-            				+ "VALUES ('"+ usuario +"Usuario','"+ contraseña +"',getdate())";
+            String INSERT = "INSERT INTO [UsuariosAPP].[dbo].[usuarios] "
+            				+ "VALUES ('"+ usuario +"','"+ contraseña +"',getdate())";
 
             st.execute(INSERT);         
  
@@ -43,7 +43,7 @@ public class BBDD {
 			  
 			Statement st = conn.createStatement();
 			
-			String SELECT = "SELECT * FROM [Usuarios].[dbo].[usuarios]";
+			String SELECT = "SELECT * FROM [UsuariosApp].[dbo].[usuarios]";
             
             ResultSet res = st.executeQuery(SELECT); 
             
@@ -66,5 +66,52 @@ public class BBDD {
             return "error";
         }
 	}			
+	
+	public Integer obtenerIdUsuario(String usuario) {
+		//Comprobamos si existe el usuario, si es así nos devolverá su clave y podremos hacer la comparativa, 
+		//si no existe devolverá un string vacio y por tanto querrá decir que no existe
+		
+		try {
+			  
+			Statement st = conn.createStatement();
+			
+			String SELECT = "SELECT id_usuario FROM [UsuariosAPP].[dbo].[usuarios] WHERE usuario = '"+ usuario +"'";
+            
+            ResultSet res = st.executeQuery(SELECT); 
+            		            
+            while(res.next()) {
+            			            	
+        		return Integer.parseInt (res.getString("id_usuario")); 
+
+            }
+					
+        	return 0;
+            
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return 0;
+        }
+	}
+	
+	public Boolean insertarPuntuacion(String usuario, String puntuacion, String usuarioColision) {
+		
+		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolverá true, sino false
+		
+		try {
+			  
+			Statement st = conn.createStatement();
+	           
+            String INSERT = "INSERT INTO [UsuariosAPP].[dbo].[puntuaciones] "
+            				+ "VALUES ('"+ obtenerIdUsuario(usuario) +"','"+ puntuacion +"','"+ usuarioColision +"',getdate())";
+
+            st.execute(INSERT);         
+ 
+        	return true;
+            
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+	}
 	
 }

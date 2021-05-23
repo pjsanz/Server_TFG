@@ -94,6 +94,10 @@ public class DatosCliente {
 					
 	}
 	
+	public void setCoordenadas(ArrayList<Coordenadas> coordenadas) {
+		this.coordenadas = coordenadas;
+	}
+
 	public ArrayList<Coordenadas> getCoordenadas() {
 		
 		return this.coordenadas;

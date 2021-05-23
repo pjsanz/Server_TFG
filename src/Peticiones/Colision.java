@@ -10,13 +10,17 @@ import Entidades.TipoMensaje;
 public class Colision {
 		
 	private String idSesion;
+	private String usuario;	
 	private String usuarioColision;	
+	private String puntuacion;
 	private TipoMensaje    identificadorPeticion;
 	
-	public Colision(String idSesion, String usuarioColision){
+	public Colision(String idSesion, String usuario, String usuarioColision, String puntuacion){
 		
 		this.idSesion			   = idSesion;
-		this.usuarioColision 	    = usuarioColision;
+		this.usuario			   = usuario;
+		this.usuarioColision 	   = usuarioColision;
+		this.puntuacion 		   = puntuacion;
 		this.identificadorPeticion = TipoMensaje.Colision;
 	
 	}
@@ -34,10 +38,18 @@ public class Colision {
 			salida.write(LittleEndian.empaquetar(longitud));
 			salida.write(this.idSesion.getBytes("UTF-8"));
 			
+			longitud = this.usuario.getBytes("UTF-8").length;
+			salida.write(LittleEndian.empaquetar(longitud));
+			salida.write(this.usuario.getBytes("UTF-8"));
+			
 			longitud = this.usuarioColision.getBytes("UTF-8").length;
 			salida.write(LittleEndian.empaquetar(longitud));
 			salida.write(this.usuarioColision.getBytes("UTF-8"));
-						
+			
+			longitud = this.puntuacion.getBytes("UTF-8").length;
+			salida.write(LittleEndian.empaquetar(longitud));
+			salida.write(this.puntuacion.getBytes("UTF-8"));
+			
 			salida.flush();
 			
 		} catch (IOException e) {
@@ -67,9 +79,25 @@ public class Colision {
 			
 			byte[] peticionBytes2 = new byte[longitud];
 			entrada.read(peticionBytes2);
-			String usuarioColision = new String(peticionBytes2, "UTF-8");
+			String usuario = new String(peticionBytes2, "UTF-8");
 			
-			peticion = new Colision(idSesion, usuarioColision);
+			byte[] tamanoBytes3 = new byte[4];
+			entrada.read(tamanoBytes3);
+			longitud = LittleEndian.desempaquetar(tamanoBytes3);
+			
+			byte[] peticionBytes3 = new byte[longitud];
+			entrada.read(peticionBytes3);
+			String usuarioColision = new String(peticionBytes3, "UTF-8");
+			
+			byte[] tamanoBytes4 = new byte[4];
+			entrada.read(tamanoBytes4);
+			longitud = LittleEndian.desempaquetar(tamanoBytes4);
+			
+			byte[] peticionBytes4 = new byte[longitud];
+			entrada.read(peticionBytes4);
+			String puntuacion = new String(peticionBytes4, "UTF-8");
+			
+			peticion = new Colision(idSesion, usuario, usuarioColision, puntuacion);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -78,6 +106,22 @@ public class Colision {
 		return peticion;
 	}
 	
+	public String getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
+	}
+
+	public String getPuntuacion() {
+		return puntuacion;
+	}
+
+	public void setPuntuacion(String puntuacion) {
+		this.puntuacion = puntuacion;
+	}
+
 	public String getIdSesion() {
 		return idSesion;
 	}

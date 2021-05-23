@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import Entidades.DatosCliente;
@@ -31,7 +30,7 @@ public class Servidor {
 			
 			try {
 				  
-	            String dbURL = "jdbc:sqlserver://DESKTOP-FVD51I9\\MSSQLSERVER:1433";
+	            String dbURL = "jdbc:sqlserver://DESKTOP-FVD51I9\\MSSQLSERVER:1433"; //Instancia local
 	            String user = "usuarioAPP";
 	            String pass = "psswrd";
 	            

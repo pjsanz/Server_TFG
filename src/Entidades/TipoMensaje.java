@@ -9,5 +9,6 @@ public enum TipoMensaje {
 	EnvioCoordCliente, //4
 	Colision, //5
 	Puntuacion, //6
-	HistoricoPuntuaciones //7
+	HistoricoPuntuaciones, //7
+	CerrarSesion
 }
