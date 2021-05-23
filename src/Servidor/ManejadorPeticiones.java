@@ -17,11 +17,14 @@ import Entidades.LittleEndian;
 import Entidades.TipoMensaje;
 
 import Peticiones.Autenticacion;
+import Peticiones.CerrarSesion;
 import Peticiones.Colision;
 import Peticiones.EnvioCoordCliente;
 import Peticiones.EnvioCoordServidor;
+import Peticiones.HistoricoPuntuaciones;
 import Peticiones.InicioPartida;
 import Peticiones.RespuestaAutenticacion;
+import Peticiones.RespuestaHistoricoPuntuaciones;
 
 
 public class ManejadorPeticiones implements Runnable {
@@ -112,20 +115,39 @@ public class ManejadorPeticiones implements Runnable {
 								
 								if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals(peticionAutenticacion.getContraseña())) {
 									
-									//Si coincide guardamos todos los datos del cliente
 									
-									DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
-									datos.anadirSocket(s);
+									//Comprobamos si el usuario ya ha iniciado sesion
 									
-									System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
-									System.out.println(listaClientes);								
+									Boolean sesionIniciada = false;
 									
-									mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");									
-									mensajeRespuestaRegistro.generarIdSesion();
+									for (DatosCliente datos : listaDatosClientes) {
+								        if (datos.getUsuario().equals(peticionAutenticacion.getUsuario())) {
+								        	sesionIniciada = true;
+								            break;
+								        }								
+								    }
 									
-									datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
-									listaDatosClientes.add(datos);
+									if(sesionIniciada) {
+										
+										mensajeRespuestaRegistro = new RespuestaAutenticacion("duplicado");
+										
+									}
+									else {
+																											
+										//Si coincide guardamos todos los datos del cliente
 									
+										DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
+										datos.anadirSocket(s);
+										
+										System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
+										System.out.println(listaClientes);								
+										
+										mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");									
+										mensajeRespuestaRegistro.generarIdSesion();
+										
+										datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
+										listaDatosClientes.add(datos);
+									}
 								}
 								else {
 									
@@ -175,21 +197,43 @@ public class ManejadorPeticiones implements Runnable {
 							DesactivarUsuario(peticionColision.getIdSesion());
 																					
 							break;	
+						
+						case HistoricoPuntuaciones:	
+							
+							HistoricoPuntuaciones peticionPuntuaciones = HistoricoPuntuaciones.desaplanar(dis);	
+							System.out.println(peticionPuntuaciones);
+							
+							//Obtenemos el historico de puntuaciones de la BBDD
+								
+							
+							
+							//Buscamos dentro de la lista de clientes por el id_Sesion recibido para conseguir el usuario
+							String usuarioPuntuaciones = "";
+							
+							for (DatosCliente datos : listaDatosClientes) {
+						        if (datos.getSesion().equals(peticionPuntuaciones.getIdSesion())) {
+						        	usuarioPuntuaciones = datos.getUsuario();
+						            break;
+						        }
+						    }
+							
+							BBDD consultaPuntuaciones = new BBDD(conn);							
+														
+							RespuestaHistoricoPuntuaciones respuestaPuntuaciones = new RespuestaHistoricoPuntuaciones(consultaPuntuaciones.obtenerPuntuaciones(usuarioPuntuaciones));																					
+							respuestaPuntuaciones.aplanar(dos);
+																																				
+							break;
 							
 						case CerrarSesion:	
-							
-							EliminarSesionUsuario("idSesion");
-							
-							/*
+																					
 							CerrarSesion peticionCerrarSesion = CerrarSesion.desaplanar(dis);							
 							System.out.println(peticionCerrarSesion);
-														
-							
+
 							//Eliminamos al usuario de la lista de jugadores activos
-							*/	
+														
+							EliminarSesionUsuario(peticionCerrarSesion.getIdSesion());
 							
-							
-							
+																													
 							break;
 						default:
 														

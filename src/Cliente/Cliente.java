@@ -14,11 +14,14 @@ import java.util.Random;
 
 import Entidades.DatosCliente;
 import Peticiones.Autenticacion;
+import Peticiones.CerrarSesion;
 import Peticiones.Colision;
 import Peticiones.EnvioCoordCliente;
 import Peticiones.EnvioCoordServidor;
+import Peticiones.HistoricoPuntuaciones;
 import Peticiones.InicioPartida;
 import Peticiones.RespuestaAutenticacion;
+import Peticiones.RespuestaHistoricoPuntuaciones;
 
 
 public class Cliente {
@@ -62,7 +65,9 @@ public class Cliente {
 		
 		System.out.println("0 - Autenticación en el sistema: 0 + usuario + contraseña");
 		System.out.println("1 - Inicio partida: 2 ");
-		System.out.println("3 - Histórico de puntuaciones: 	 7 + sesion");
+		System.out.println("3 - Histórico de puntuaciones: 7 ");
+		System.out.println("4 - CerrarSesion: 9 ");
+
 		
 		try {
 		
@@ -132,6 +137,23 @@ public class Cliente {
 							peticionEnviada=true;
 						}
 						
+						if (mensaje[0].equals("7")&&(logeado)){
+							
+							HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(idSesion);													
+							peticion.aplanar(dos);		
+							
+							peticionEnviada=true;
+						}
+						
+						if (mensaje[0].equals("8")&&(logeado)){
+							
+							CerrarSesion peticion = new CerrarSesion(idSesion);													
+							peticion.aplanar(dos);		
+							
+							logeado 	    = false;
+							peticionEnviada = true;
+						}												
+						
 						if ((peticionEnviada)&&(!logeado)&&(mensaje[0].equals("0"))){ // Si el mensaje es 0 se que he el login
 							
 							bytes = new byte[4];
@@ -157,6 +179,10 @@ public class Cliente {
 								else if (respuestaPeticion.getRespuesta().equals("KO")){
 									
 									System.out.println("Contraseña incorrecta, nick ya existente!");					
+								}
+								else if (respuestaPeticion.getRespuesta().equals("duplicado")){
+									
+									System.out.println("El usuario ya ha iniciado sesion!");					
 								}
 								else {
 									System.out.println("Error al realizar la autenticación");		
@@ -234,17 +260,7 @@ public class Cliente {
 										
 										System.out.println(respuestaPeticion2.getUsuarios());
 										System.out.println(respuestaPeticion2.getCoordenadas());
-										/*
-										EnvioCoordCliente peticion2 = new EnvioCoordCliente(idSesion, "");											
 
-										peticion2.aplanar(dos);	
-										contador ++;
-										
-										if(contador == 3) {
-											System.out.println("Hay colision!!!");
-											break;
-										}
-										*/
 										if(ComprobacionColision(respuestaPeticion2)) {
 											System.out.println("Hay colisión");	
 											System.out.println("Tú puntuación es: " + puntuacion.toString());	
@@ -270,7 +286,29 @@ public class Cliente {
 									}
 								}																		
 							}
-						}	
+						}
+						else if (mensaje[0].equals("7") && (logeado) && peticionEnviada){
+							
+							bytes = new byte[4];
+							n = -1;
+							
+							n = dis.read(bytes);
+							
+							if (n!=-1){
+								
+								RespuestaHistoricoPuntuaciones respuestaPeticion = RespuestaHistoricoPuntuaciones.desaplanar(dis);
+								
+								String[] puntuaciones = respuestaPeticion.getPuntuaciones().split("@");
+								
+								System.out.println("Puntos | UsuarioColision | fecha");
+								
+								for (String puntos : puntuaciones) {					        
+									System.out.println(puntos);
+							    }
+															
+							}							
+								
+						}
 						
 					} catch (ArrayIndexOutOfBoundsException e) {
 						System.out.println("Petición realizada incorrectamente");
@@ -279,6 +317,7 @@ public class Cliente {
 				else {
 					
 					peticionEnviada=false;
+					
 				}																			
 			}
 	

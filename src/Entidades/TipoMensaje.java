@@ -10,5 +10,6 @@ public enum TipoMensaje {
 	Colision, //5
 	Puntuacion, //6
 	HistoricoPuntuaciones, //7
-	CerrarSesion
+	RespuestaHistoricoPuntaciones, //8
+	CerrarSesion // 9
 }

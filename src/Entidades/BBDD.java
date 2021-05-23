@@ -114,4 +114,34 @@ public class BBDD {
         }
 	}
 	
+	public String obtenerPuntuaciones(String usuario) {
+		
+		//Comprobamos si existe el usuario, si es así nos devolverá su clave y podremos hacer la comparativa, 
+		//si no existe devolverá un string vacio y por tanto querrá decir que no existe
+		
+		try {
+			  
+			Statement st = conn.createStatement();
+			
+			String SELECT = "SELECT * FROM [UsuariosApp].[dbo].[puntuaciones] WHERE id_usuario ='"+ obtenerIdUsuario(usuario) +"'";
+            
+            ResultSet res = st.executeQuery(SELECT); 
+            
+            String puntuaciones = "";
+            
+            while(res.next()) {
+            	
+            	puntuaciones = puntuaciones + res.getString("puntuacion") + "|" + res.getString("usuarioColision")
+            				 + "|" + res.getString("fecha_puntuacion") + "@"; 
+
+            }
+					
+        	return puntuaciones;
+            
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return "error";
+        }
+	}			
+	
 }
