@@ -12,7 +12,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
 
+
+
 import Entidades.DatosCliente;
+import Entidades.LittleEndian;
+import Entidades.TipoMensaje;
 import Peticiones.Autenticacion;
 import Peticiones.CerrarSesion;
 import Peticiones.Colision;
@@ -30,7 +34,6 @@ public class Cliente {
 	private BufferedReader bf;
 	private String idSesion;	
 	private String miUsuario;
-	private String usuarioColision;
 	private ArrayList<DatosCliente> listaDatosRivales;
 	
 	public Cliente(String maquina, int puerto){
@@ -46,15 +49,13 @@ public class Cliente {
 		}
 	}
 	
-	public void inicio(){
+	public void inicio() throws Exception{
 		
 		boolean logeado         = false;
 		boolean peticionEnviada = false;
 		boolean juegoIniciado   = false;
-		Integer puntuacion 			= 0;
 		
 		miUsuario 				= "";
-		usuarioColision 		= "";
 		listaDatosRivales 	    = new ArrayList<DatosCliente>();
 		
 		byte [] bytes;
@@ -125,8 +126,8 @@ public class Cliente {
 												
 							//Parte de coordenadas sustituir en app por las coordenadas actuales
 							
-							Integer latitudCoord = new Random().nextInt(4);
-							Integer longitudCoord = new Random().nextInt(4);
+							Integer latitudCoord = new Random().nextInt(6);
+							Integer longitudCoord = new Random().nextInt(6);
 							
 							String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
 							
@@ -207,86 +208,90 @@ public class Cliente {
 								System.out.println(respuestaPeticion.getUsuarios());
 								System.out.println(respuestaPeticion.getCoordenadas());
 								
-								//Si hay colision envio el mensaje de colision al servidor 
-								//Sino le vuelvo a mandar mis coordenadas esta vez ya con un mensaje de envioCoordCliente
+								//Parte de coordenadas sustituir en app por las coordenadas actuales
 								
-								if(ComprobacionColision(respuestaPeticion)) {
-									
-									System.out.println("Hay colisión");	
-									System.out.println("Tú puntuación es: " + puntuacion.toString());	
-									Colision peticion = new Colision(idSesion, miUsuario, usuarioColision, puntuacion.toString());																		
-									peticion.aplanar(dos);	
-									
-									//Inicializamos puntuaciones, lista de rivales y la variable juego iniciado
-									listaDatosRivales = new ArrayList<DatosCliente>();
-									puntuacion = 0;
-									juegoIniciado = false;
-								}
-								else {
-																		
-									//Parte de coordenadas sustituir en app por las coordenadas actuales
-									
-									Integer latitudCoord = new Random().nextInt(4);
-									Integer longitudCoord = new Random().nextInt(4);
-									
-									String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
-									
-									EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
-									
-									peticion.aplanar(dos);	
-									
-									//Hemos iniciado el juego 
-									
-									juegoIniciado = true;									
-								}
+								AñadirCoordenadasUsuariosListaRivales(respuestaPeticion);
+																										
+								Integer latitudCoord = new Random().nextInt(6);
+								Integer longitudCoord = new Random().nextInt(6);
+								
+								String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
+								
+								EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
+								
+								peticion.aplanar(dos);	
+								 
+								//Hemos iniciado el juego 
+								
+								//Pintamos nuestra coordenada enviada
+								
+								juegoIniciado = true;	
+																	
+							}
 																																		
-								// Como hemos iniciado el juego ya nos quedamos leyendo y intercambiando coordenadas
-								// Hasta que se produzca una colision
+							// Como hemos iniciado el juego ya nos quedamos leyendo y intercambiando coordenadas
+							// Hasta que se produzca una colision
+							
+							//int contador = 0;
+							
+							while(juegoIniciado){
 								
-								//int contador = 0;
+								Thread.sleep(3000);
 								
-								while(juegoIniciado){
+								bytes = new byte[4];
+								n = -1;
+								
+								n = dis.read(bytes);
+								
+								if (n!=-1){
+								
+									TipoMensaje tipo = TipoMensaje.values()[LittleEndian.desempaquetar(bytes)];
 									
-									bytes = new byte[4];
-									n = -1;
+									switch (tipo) {
 									
-									n = dis.read(bytes);
-									
-									if (n!=-1){
-									
-										puntuacion++;
-										
-										EnvioCoordServidor respuestaPeticion2 = EnvioCoordServidor.desaplanar(dis);
-										
-										System.out.println(respuestaPeticion2.getUsuarios());
-										System.out.println(respuestaPeticion2.getCoordenadas());
-
-										if(ComprobacionColision(respuestaPeticion2)) {
-											System.out.println("Hay colisión");	
-											System.out.println("Tú puntuación es: " + puntuacion.toString());	
-											Colision peticion = new Colision(idSesion, miUsuario, usuarioColision, puntuacion.toString());																		
-											peticion.aplanar(dos);	
+										case EnvioCoordServidor:
 											
-											//Inicializamos puntuaciones, lista de rivales y la variable juego iniciado
-											listaDatosRivales = new ArrayList<DatosCliente>();
-											puntuacion = 0;
-											juegoIniciado = false;
-										}
-										else {
-											Integer latitudCoord = new Random().nextInt(2);
-											Integer longitudCoord = new Random().nextInt(2);
+											EnvioCoordServidor respuestaPeticion2 = EnvioCoordServidor.desaplanar(dis);
+											System.out.println(respuestaPeticion2.getUsuarios());
+											System.out.println(respuestaPeticion2.getCoordenadas());
+
+											AñadirCoordenadasUsuariosListaRivales(respuestaPeticion2);
+											
+											Integer latitudCoord = new Random().nextInt(6);
+											Integer longitudCoord = new Random().nextInt(6);
 											
 											String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
 											
 											EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
 											
 											peticion.aplanar(dos);					
-										}
+											
+											//Pintamos nuestra coordenada enviada
+											
+										break;
 										
-									}
-								}																		
-							}
+										case Colision:
+											
+											Colision peticionColision = Colision.desaplanar(dis);					
+											
+											System.out.println("Has colisionado con la estela de: " + peticionColision.getUsuarioColision());
+											System.out.println("Has obtenido una puntuación de: " + peticionColision.getPuntuacion());
+
+											//Reiniciamos los parametros del juego para el cliente
+											
+											juegoIniciado = false;
+											listaDatosRivales = new ArrayList<DatosCliente>();
+											
+											break;
+											
+										default:
+											break;
+									}																										
+									
+								}
+							}																		
 						}
+						
 						else if (mensaje[0].equals("7") && (logeado) && peticionEnviada){
 							
 							bytes = new byte[4];
@@ -329,14 +334,13 @@ public class Cliente {
 		
 	}
 	
-	private Boolean ComprobacionColision(EnvioCoordServidor respuestaPeticion) {
+	private void AñadirCoordenadasUsuariosListaRivales(EnvioCoordServidor respuestaPeticion) {
 		
-		Boolean colision = false;
-				
-		System.out.println(respuestaPeticion.getUsuarios());
-		System.out.println(respuestaPeticion.getCoordenadas());
-		
-		//Descompongo y las añado a la lista de usuarios si esta esta vacia quiere decir 
+		try {
+			
+
+							
+		//Descompongo y las añado0 a la lista de usuarios si esta esta vacia quiere decir 
 		//que he recibido un primer mensaje del servidor con los usuarios activos
 		
 		//Añadimos usuarios menos nosotros mismos!
@@ -345,12 +349,12 @@ public class Cliente {
 		
 		String[] usuarios = respuestaPeticion.getUsuarios().split("&");
 		String[] coordenadas = respuestaPeticion.getCoordenadas().split("@");
-		
-		String misUltimasCoordenadasEnviadas = "";
+				
 		Boolean existeUsuario = false;
 		int     indiceUsuario = 0;
-		
+						
 		for(int i = 0; i < usuarios.length; i++) {
+						
 			if(!usuarios[i].equals(miUsuario)) {
 				
 				//Comprobamos si el usuario ya estaba añadido para no añadirle de nuevo
@@ -359,9 +363,9 @@ public class Cliente {
 				for (DatosCliente datosClienteUsu : listaDatosRivales) {
 					if(datosClienteUsu.getUsuario().equals(usuarios[i])) {
 						existeUsuario = true;
+						indiceUsuario = listaDatosRivales.indexOf(datosClienteUsu);
 						break;
 					}
-					indiceUsuario++;
 				}
 				
 				if(!existeUsuario) {
@@ -377,32 +381,54 @@ public class Cliente {
 				}
 				
 			}
-			else 
-			{
-				misUltimasCoordenadasEnviadas = coordenadas[i];
+			
+			//Eliminamos los usuarios de la lista por si alguno ha desaparecido ya no es rival	
+			
+			for (String usuario : usuarios) {
+				if(!EncontrarUsuarioLista(usuarios, usuario)) {
+					EliminarRival(usuario);
+				}
 			}
+			
 			
 		}
 		
-		//PINTAMOS COORDENADAS EN EL MAPA EN LA APP DE ANDROID
+		//PINTAMOS COORDENADAS EN EL MAPA EN LA APP DE ANDROID las coordenadas de los usuarios que me llegan 
+		}
+		catch(IndexOutOfBoundsException e) {
+								
+		}			
 		
-		//Realizamos la comparacion por si hubiera colision
-				
-		for (DatosCliente datosCliente : listaDatosRivales) {
-			if(!datosCliente.getUsuario().equals(miUsuario)) {
-				if(datosCliente.buscarCoordenada(misUltimasCoordenadasEnviadas)){
-					colision = true;
-					this.usuarioColision = datosCliente.getUsuario();
-				}
+	}
+	
+	private boolean EncontrarUsuarioLista(String[] usuarios, String usuario) {
+		
+		boolean retorno = false;
+		
+		for(String usu : usuarios) {
+			if(usu.equals(usuario)) {
+				retorno = true;
+				break;
 			}
-	    }
+		}
 		
-		System.out.println(colision);
+		return retorno;
 		
-		//Si hay colision envio el mensaje de colision al servidor, sino vuelvo a mandar mis coordenadas actuales
+	}
+	
+	private void EliminarRival(String usuario) {
 		
-		return colision;
+		int indiceUsuario = 0;
 		
+		for (DatosCliente datosClienteUsu : listaDatosRivales) {
+			if(datosClienteUsu.getUsuario().equals(usuario)) {
+				indiceUsuario = listaDatosRivales.indexOf(datosClienteUsu);
+				break;
+			}
+		}
+		
+		listaDatosRivales.remove(indiceUsuario);
+			
 	}
 	
 }

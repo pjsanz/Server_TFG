@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.Connection;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 
@@ -168,35 +169,53 @@ public class ManejadorPeticiones implements Runnable {
 							InicioPartida peticionInicio = InicioPartida.desaplanar(dis);
 							System.out.println(peticionInicio);
 							
+							//Añadimos las coordenadas a la lista
+							AñadirCoordenadasUsuarioListaClientes(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());
+							
+							//Enviamos las coordenadas, siempre la ultima
 							EnvioCoordenadasServidor(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());														     				        
-						    																																									
+																			    																																									
 							break;
 							
 						case EnvioCoordCliente:	
 							
 							EnvioCoordCliente peticionCoordCliente = EnvioCoordCliente.desaplanar(dis);							
-							System.out.println(peticionCoordCliente);
+							System.out.println(peticionCoordCliente);						
+													
+							//Añadimos las coordenadas a la lista
+							AñadirCoordenadasUsuarioListaClientes(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());
+							
+							//Recibimos coordenadas del cliente comprobamos si hay colision con alguna de la lista de clientes que tenemos
+							//Compararemos con las coordenadas de hora igual o superior a cuando se inicio la partida
+							
+							String usuarioColision = ComprobacionColision(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());
+							
+							if(usuarioColision.equals("")){	
+								//Enviamos las coordenadas siempre la ultima
+								EnvioCoordenadasServidor(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());														     				        
+							}
+							else {
+								
+								//Obtenemos los datos de los dos usuarios, el que envia sus coord y con el que colisiona
+								
+								DatosCliente datosClienteUsuario = ObtenerDatosClientePorIdSesion(peticionCoordCliente.getIdSesion());
+															
+								//La puntuacion la definimos como el numero de coordenadas que se han enviado al servidor hasta el momento de la colision
+								
+								BBDD consulta2 = new BBDD(conn);	
+								consulta2.insertarPuntuacion(datosClienteUsuario.getUsuario(), datosClienteUsuario.getCoordenadas().size(), usuarioColision);
+								
+								//Enviamos el mensaje de colision al usuario para informarle que ha chocado con la estela de un jugador
+								
+								Colision peticionColision = new Colision(datosClienteUsuario.getSesion(), datosClienteUsuario.getUsuario(), usuarioColision, String.valueOf(datosClienteUsuario.getCoordenadas().size()));
+								peticionColision.aplanar(dos);
+								
+								//Desactivamos los dos el de la colision y el que nos envia sus coordenadas
+								DesactivarUsuario(datosClienteUsuario.getSesion());
+							}
+							
 														
-							EnvioCoordenadasServidor(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());														     				        
-														
-							break;
-							
-						case Colision:	
-							
-							Colision peticionColision = Colision.desaplanar(dis);							
-							System.out.println(peticionColision.getIdSesion());
-							
-							//Guardamos en BBDD Para el historico de puntuaciones.
-							
-							BBDD consulta2 = new BBDD(conn);							
-							consulta2.insertarPuntuacion(peticionColision.getUsuario(), peticionColision.getPuntuacion(), peticionColision.getUsuarioColision());
-							
-							//Eliminamos al usuario de la partida activa 
-							//(Lo pasamos a inactivo y eliminamos su lista de coordenadas)
-							
-							DesactivarUsuario(peticionColision.getIdSesion());
-																					
-							break;	
+							break;												
 						
 						case HistoricoPuntuaciones:	
 							
@@ -204,8 +223,7 @@ public class ManejadorPeticiones implements Runnable {
 							System.out.println(peticionPuntuaciones);
 							
 							//Obtenemos el historico de puntuaciones de la BBDD
-								
-							
+															
 							
 							//Buscamos dentro de la lista de clientes por el id_Sesion recibido para conseguir el usuario
 							String usuarioPuntuaciones = "";
@@ -252,51 +270,17 @@ public class ManejadorPeticiones implements Runnable {
 		} catch (IOException e) {
 			System.out.println(e);
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}
 	
 	private void EnvioCoordenadasServidor(String idSesion, String coordenadas) {
 		
-		DatosCliente datosInicio = null;
-		int indice = 0;
 		
-		//Buscamos dentro de la lista de clientes por el id_Sesion recibido
-		
-		for (DatosCliente datos : listaDatosClientes) {
-	        if (datos.getSesion().equals(idSesion)) {
-	        	datosInicio = datos;
-	            break;
-	        }
-	        //Calculamos el indice para saber en que posicion está a la hora de actualizar
-	        indice++;
-	    }
-		
-		//Si hemos encontrado la sesion iniciada 
-		
-		if(!datosInicio.equals(null)) {
-			//enviamos nuestras coordenadas y solicitamos las otras
-				
-			//Miramos si el usuario esta activo para ver si es un mensaje de inicio de partida
-			//Si es asi pasamos el usuario activo, sino simplemente es una peticion de coordenadas
-			
-			if(datosInicio.getEstado().equals("Inactivo")) {				
-				datosInicio.setEstado("Activo"); 
-				//El usuario ahora estará con estado activo (ha empezado la partida)
-			}
-			
-			
-			//guardamos las coordenadas
-					
-			datosInicio.añadirCoordenadas(coordenadas);
-
-			//Actualizamos el registro dentro de la listaDatosClientes en la posicion de la variable indice
-			
-			listaDatosClientes.set(indice, datosInicio);
-		
-		}							
-		
-		//Ahora enviamos los datos de todos los clientes activos y su ultima coordenada la ultima posicion en la lista
+		//Enviamos los datos de todos los clientes activos y su ultima coordenada la ultima posicion en la lista
 		
 		//Mandamos en dos strigs Usuarios por un lado y coordenadas por otro
 		//Los usuarios estaran delimitados por: |
@@ -334,7 +318,9 @@ public class ManejadorPeticiones implements Runnable {
 		
 		try {
 			
-			Socket s = datosInicio.getSocket();
+			DatosCliente datosCli = ObtenerDatosClientePorIdSesion(idSesion);
+			
+			Socket s = datosCli.getSocket();
 			
 			BufferedOutputStream bos = new BufferedOutputStream(s.getOutputStream());
 			DataOutputStream 	 dos = new DataOutputStream(bos);
@@ -404,5 +390,108 @@ public class ManejadorPeticiones implements Runnable {
 		
 		
 	}
+
+	private void AñadirCoordenadasUsuarioListaClientes(String idSesion, String coordenadas) {
+		DatosCliente datosInicio = null;
+		int indice = 0;
+		
+		//Buscamos dentro de la lista de clientes por el id_Sesion recibido
+		
+		for (DatosCliente datos : listaDatosClientes) {
+	        if (datos.getSesion().equals(idSesion)) {
+	        	datosInicio = datos;
+	        	//Obtenemos el indice para saber en que posicion está a la hora de actualizar
+	        	indice = listaDatosClientes.indexOf(datos);
+	            break;
+	        }
+	    }
+		
+		//Si hemos encontrado la sesion iniciada 
+		
+		if(!datosInicio.equals(null)) {
+			//enviamos nuestras coordenadas y solicitamos las otras
+				
+			//Miramos si el usuario esta activo para ver si es un mensaje de inicio de partida
+			//Si es asi pasamos el usuario activo, sino simplemente es una peticion de coordenadas
+			
+			if(datosInicio.getEstado().equals("Inactivo")) {				
+				datosInicio.setEstado("Activo"); 
+				datosInicio.setHora(LocalDateTime.now()); //Añadimos la hora, solo compararemos 
+				//con las coordenadas superiores a esa hora ya que ahi es cuando comenzamos a jugar
+				//El usuario ahora estará con estado activo (ha empezado la partida)
+			}
+			
+			
+			//guardamos las coordenadas
+					
+			datosInicio.añadirCoordenadas(coordenadas);
+
+			//Actualizamos el registro dentro de la listaDatosClientes en la posicion de la variable indice
+			
+			listaDatosClientes.set(indice, datosInicio);
+		
+		}							
+
+	}
 	
+	private String ComprobacionColision(String idSesion, String ultimasCoordenadasUsuario) {
+		
+		String usuarioColision = "";						
+		
+		//Realizamos la comparacion por si hubiera colision comparamos con todos menos con nosotros mismos
+				
+		for (DatosCliente datosCliente : listaDatosClientes) {
+			if(!datosCliente.getSesion().equals(idSesion)) {
+				if(datosCliente.buscarCoordenada(ultimasCoordenadasUsuario, ObtenerHoraInicioPartida(idSesion))){
+					usuarioColision = datosCliente.getUsuario();
+					break;
+				}
+			}
+	    }
+			
+		//Si hay colision envio el mensaje de colision al servidor, sino vuelvo a mandar mis coordenadas actuales
+		
+		return usuarioColision;
+		
+	}
+		
+	private DatosCliente ObtenerDatosClientePorIdSesion(String idSesion) {
+		
+		DatosCliente datosCli = null;
+		
+		for (DatosCliente datos : listaDatosClientes) {
+	        if (datos.getSesion().equals(idSesion)) {
+	        	datosCli = datos;
+	            break;
+	        }
+	    }
+		
+		return datosCli;
+	}
+	/*
+	private DatosCliente ObtenerDatosClientePorUsuario(String usuario) {
+		
+		DatosCliente datosCli = null;
+		
+		for (DatosCliente datos : listaDatosClientes) {
+	        if (datos.getUsuario().equals(usuario)) {
+	        	datosCli = datos;
+	            break;
+	        }
+	    }
+		
+		return datosCli;
+	}
+	*/
+	private LocalDateTime ObtenerHoraInicioPartida(String idSesion) {
+		
+		for (DatosCliente datosCliente : listaDatosClientes) {
+			if(datosCliente.getSesion().equals(idSesion)) {
+				return datosCliente.getHora();
+			}
+	    }
+		
+		return null;
+		
+	}
 }

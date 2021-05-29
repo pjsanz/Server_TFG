@@ -93,7 +93,7 @@ public class BBDD {
         }
 	}
 	
-	public Boolean insertarPuntuacion(String usuario, String puntuacion, String usuarioColision) {
+	public Boolean insertarPuntuacion(String usuario, int puntuacion, String usuarioColision) {
 		
 		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolverá true, sino false
 		

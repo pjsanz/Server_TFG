@@ -1,25 +1,27 @@
 package Entidades;
 
+import java.time.LocalDateTime;
+
 public class Coordenadas {
 	
-	private String fecha ;
+	private LocalDateTime hora ;
 	private String longitud;
 	private String latitud;
 	
-	public Coordenadas(String latitud, String longitud, String fecha){
+	public Coordenadas(String latitud, String longitud, LocalDateTime hora){
 		
 		this.longitud = longitud;
 		this.latitud  = latitud;
-		this.fecha 	  = fecha;
+		this.hora 	  = hora;
 		
 	}
 
-	public String getFecha() {
-		return fecha;
+	public LocalDateTime getHora() {
+		return hora;
 	}
 
-	public void setFecha(String fecha) {
-		this.fecha = fecha;
+	public void setHora(LocalDateTime hora) {
+		this.hora = hora;
 	}
 
 	public String getLongitud() {

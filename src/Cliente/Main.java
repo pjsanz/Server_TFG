@@ -2,7 +2,7 @@ package Cliente;
 
 public class Main {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
 		
 		if (args.length > 1 || args.length == 0) {
