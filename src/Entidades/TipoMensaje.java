@@ -8,8 +8,7 @@ public enum TipoMensaje {
 	EnvioCoordServidor, // 3
 	EnvioCoordCliente, //4
 	Colision, //5
-	Puntuacion, //6
-	HistoricoPuntuaciones, //7
-	RespuestaHistoricoPuntaciones, //8
-	CerrarSesion // 9
+	HistoricoPuntuaciones, //6
+	RespuestaHistoricoPuntaciones, //7
+	CerrarSesion // 8
 }
