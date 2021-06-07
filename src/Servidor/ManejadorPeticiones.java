@@ -97,7 +97,7 @@ public class ManejadorPeticiones implements Runnable {
 								DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
 								datos.anadirSocket(s);
 																															 																																						
-								mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");
+								mensajeRespuestaRegistro = new RespuestaAutenticacion("Registro");
 								mensajeRespuestaRegistro.generarIdSesion();
 								
 								datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
@@ -107,7 +107,7 @@ public class ManejadorPeticiones implements Runnable {
 							}
 							
 							else if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals("error")) {
-								mensajeRespuestaRegistro = new RespuestaAutenticacion("error");
+								mensajeRespuestaRegistro = new RespuestaAutenticacion("Error");
 								//Enviamos mensaje de error
 							}
 		
@@ -130,7 +130,7 @@ public class ManejadorPeticiones implements Runnable {
 									
 									if(sesionIniciada) {
 										
-										mensajeRespuestaRegistro = new RespuestaAutenticacion("duplicado");
+										mensajeRespuestaRegistro = new RespuestaAutenticacion("Duplicado");
 										
 									}
 									else {
@@ -207,7 +207,7 @@ public class ManejadorPeticiones implements Runnable {
 								
 								//Enviamos el mensaje de colision al usuario para informarle que ha chocado con la estela de un jugador
 								
-								Colision peticionColision = new Colision(datosClienteUsuario.getSesion(), datosClienteUsuario.getUsuario(), usuarioColision, String.valueOf(datosClienteUsuario.getCoordenadas().size()));
+								Colision peticionColision = new Colision(datosClienteUsuario.getSesion(), usuarioColision, String.valueOf(datosClienteUsuario.getCoordenadas().size()));
 								peticionColision.aplanar(dos);
 								
 								//Desactivamos los dos el de la colision y el que nos envia sus coordenadas
