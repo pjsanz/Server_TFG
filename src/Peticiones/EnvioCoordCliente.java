@@ -10,12 +10,12 @@ import Entidades.TipoMensaje;
 public class EnvioCoordCliente {
 	private String idSesion;
 	private String coordenadas;	
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
 	public EnvioCoordCliente(String idSesion, String coordenadas){
 		
-		this.idSesion			   = idSesion;
-		this.coordenadas 		   = coordenadas;
+		this.idSesion = idSesion;
+		this.coordenadas = coordenadas;
 		this.identificadorPeticion = TipoMensaje.EnvioCoordCliente;
 	
 	}

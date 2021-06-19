@@ -64,9 +64,9 @@ public class Cliente {
 		
 		System.out.println("Tipos de Peticiones cliente (App Android):");
 		
-		System.out.println("0 - Autenticación en el sistema: 0 + usuario + contraseña");
+		System.out.println("0 - Autenticacion en el sistema: 0 + usuario + password");
 		System.out.println("1 - Inicio partida: 2 ");
-		System.out.println("3 - Histórico de puntuaciones: 7 ");
+		System.out.println("3 - Historico de puntuaciones: 7 ");
 		System.out.println("4 - CerrarSesion: 9 ");
 
 		
@@ -168,7 +168,7 @@ public class Cliente {
 								
 								if (respuestaPeticion.getRespuesta().equals("OK")){
 									
-									System.out.println("Autenticación completada correctamente!!!");
+									System.out.println("Autenticaciï¿½n completada correctamente!!!");
 	
 									logeado=true;
 									miUsuario = mensaje[1];
@@ -179,14 +179,14 @@ public class Cliente {
 								}
 								else if (respuestaPeticion.getRespuesta().equals("KO")){
 									
-									System.out.println("Contraseña incorrecta, nick ya existente!");					
+									System.out.println("Contraseï¿½a incorrecta, nick ya existente!");					
 								}
 								else if (respuestaPeticion.getRespuesta().equals("duplicado")){
 									
 									System.out.println("El usuario ya ha iniciado sesion!");					
 								}
 								else {
-									System.out.println("Error al realizar la autenticación");		
+									System.out.println("Error al realizar la autenticaciï¿½n");		
 								}
 								
 							}
@@ -210,7 +210,7 @@ public class Cliente {
 								
 								//Parte de coordenadas sustituir en app por las coordenadas actuales
 								
-								AñadirCoordenadasUsuariosListaRivales(respuestaPeticion);
+								InsertarCoordenadasUsuariosListaRivales(respuestaPeticion);
 																										
 								Integer latitudCoord = new Random().nextInt(6);
 								Integer longitudCoord = new Random().nextInt(6);
@@ -255,7 +255,7 @@ public class Cliente {
 											System.out.println(respuestaPeticion2.getUsuarios());
 											System.out.println(respuestaPeticion2.getCoordenadas());
 
-											AñadirCoordenadasUsuariosListaRivales(respuestaPeticion2);
+											InsertarCoordenadasUsuariosListaRivales(respuestaPeticion2);
 											
 											Integer latitudCoord = new Random().nextInt(6);
 											Integer longitudCoord = new Random().nextInt(6);
@@ -275,7 +275,7 @@ public class Cliente {
 											Colision peticionColision = Colision.desaplanar(dis);					
 											
 											System.out.println("Has colisionado con la estela de: " + peticionColision.getUsuarioColision());
-											System.out.println("Has obtenido una puntuación de: " + peticionColision.getPuntuacion());
+											System.out.println("Has obtenido una puntuaciï¿½n de: " + peticionColision.getPuntuacion());
 
 											//Reiniciamos los parametros del juego para el cliente
 											
@@ -316,7 +316,7 @@ public class Cliente {
 						}
 						
 					} catch (ArrayIndexOutOfBoundsException e) {
-						System.out.println("Petición realizada incorrectamente");
+						System.out.println("Peticiï¿½n realizada incorrectamente");
 					}
 				}
 				else {
@@ -334,16 +334,14 @@ public class Cliente {
 		
 	}
 	
-	private void AñadirCoordenadasUsuariosListaRivales(EnvioCoordServidor respuestaPeticion) {
+	private void InsertarCoordenadasUsuariosListaRivales(EnvioCoordServidor respuestaPeticion) {
 		
 		try {
-			
-
-							
-		//Descompongo y las añado0 a la lista de usuarios si esta esta vacia quiere decir 
+										
+		//Descompongo y las anado a la lista de usuarios si esta esta vacia quiere decir 
 		//que he recibido un primer mensaje del servidor con los usuarios activos
 		
-		//Añadimos usuarios menos nosotros mismos!
+		//Anadimos usuarios menos nosotros mismos!
 		
 		DatosCliente datos = null;
 		
@@ -357,7 +355,7 @@ public class Cliente {
 						
 			if(!usuarios[i].equals(miUsuario)) {
 				
-				//Comprobamos si el usuario ya estaba añadido para no añadirle de nuevo
+				//Comprobamos si el usuario ya estaba anadido para no anadirle de nuevo
 				//Solamente introducimos su ultima coordenada
 				
 				for (DatosCliente datosClienteUsu : listaDatosRivales) {
@@ -370,12 +368,12 @@ public class Cliente {
 				
 				if(!existeUsuario) {
 					 datos = new DatosCliente(usuarios[i]);
-					 datos.añadirCoordenadas(coordenadas[i]);
+					 datos.insertarCoordenadas(coordenadas[i]);
 					 listaDatosRivales.add(datos);
 				}
 				else {
 					datos = listaDatosRivales.get(indiceUsuario);
-					datos.añadirCoordenadas(coordenadas[i]);
+					datos.insertarCoordenadas(coordenadas[i]);
 					
 					listaDatosRivales.set(indiceUsuario, datos);
 				}

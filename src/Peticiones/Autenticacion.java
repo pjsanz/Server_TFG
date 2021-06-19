@@ -11,14 +11,14 @@ import Entidades.TipoMensaje;
 
 public class Autenticacion {
 	
-	private String contraseña;
+	private String password;
 	private String usuario;
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
-	public Autenticacion(String usuario, String contraseña){
+	public Autenticacion(String usuario, String password){
 		
-		this.usuario			   = usuario;
-		this.contraseña 		   = contraseña;
+		this.usuario = usuario;
+		this.password = password;
 		this.identificadorPeticion = TipoMensaje.Autenticacion;
 	
 	}
@@ -36,10 +36,10 @@ public class Autenticacion {
 			salida.write(LittleEndian.empaquetar(longitud));
 			salida.write(this.usuario.getBytes("UTF-8"));
 			
-			longitud = this.contraseña.getBytes("UTF-8").length;
+			longitud = this.password.getBytes("UTF-8").length;
 			salida.write(LittleEndian.empaquetar(longitud));	
 			
-			salida.write(cifra(this.contraseña));
+			salida.write(cifra(this.password));
 						
 			salida.flush();
 			
@@ -70,12 +70,9 @@ public class Autenticacion {
 			
 			byte[] peticionBytes2 = new byte[16];
 			entrada.read(peticionBytes2);
-			String contraseña = descifra(peticionBytes2);
-			//String contraseña = new String(peticionBytes2, "UTF-8");
+			String password = descifra(peticionBytes2);					
 			
-			
-			
-			peticion = new Autenticacion(nick, contraseña);
+			peticion = new Autenticacion(nick, password);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -88,8 +85,8 @@ public class Autenticacion {
 		return usuario;
 	}
 	
-	public String getContraseña() {
-		return contraseña;
+	public String getPassword() {
+		return password;
 	}
 	
 
@@ -108,12 +105,14 @@ public class Autenticacion {
 	}
 
 	private static Cipher obtieneCipher(boolean paraCifrar) throws Exception {
-		final String frase = "€st0yR3@liz@nd0##TFG@ndr0id";
+		
+		final String frase = "Est0yR3@liz@nd0##TFG@ndr0id";
 		final MessageDigest digest = MessageDigest.getInstance("SHA");
 		digest.update(frase.getBytes("UTF-8"));
 		final SecretKeySpec key = new SecretKeySpec(digest.digest(), 0, 16, "AES");
 
 		final Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		
 		if (paraCifrar) {
 			aes.init(Cipher.ENCRYPT_MODE, key);
 		} else {

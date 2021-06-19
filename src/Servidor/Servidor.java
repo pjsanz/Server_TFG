@@ -13,8 +13,8 @@ import Entidades.DatosCliente;
 public class Servidor {
 	
 	private ServerSocket ss;
-	private ArrayList<String> 	     listaUsuarios;
-	private ArrayList<DatosCliente>  listaDatosClientes;
+	private ArrayList<String> listaUsuarios;
+	private ArrayList<DatosCliente> listaDatosClientes;
 	private Connection conn;
 	
 	public Servidor(int puerto){
@@ -26,7 +26,7 @@ public class Servidor {
 				e.printStackTrace();
 			}
 			
-			//Realizamos la conexión con la BBDD mediante la libreria de JAVA mssql-jdbc
+			//Realizamos la conexion con la BBDD mediante la libreria de JAVA mssql-jdbc
 			
 			try {
 				  

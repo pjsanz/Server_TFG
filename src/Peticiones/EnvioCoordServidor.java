@@ -9,13 +9,13 @@ import Entidades.TipoMensaje;
 
 public class EnvioCoordServidor {
 
-	private String 		   usuarios;
-	private String 		   coordenadas;	
-	private TipoMensaje    identificadorPeticion;
+	private String usuarios;
+	private String coordenadas;	
+	private TipoMensaje identificadorPeticion;
 	
 	public EnvioCoordServidor(String usuarios, String coordenadas){
 		
-		this.usuarios    = usuarios;
+		this.usuarios = usuarios;
 		this.coordenadas = coordenadas;
 
 		this.identificadorPeticion = TipoMensaje.EnvioCoordServidor;

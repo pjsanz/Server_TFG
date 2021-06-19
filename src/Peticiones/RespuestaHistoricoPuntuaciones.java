@@ -10,11 +10,11 @@ import Entidades.TipoMensaje;
 public class RespuestaHistoricoPuntuaciones {
 	
 	private String puntuaciones;	
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
 	public RespuestaHistoricoPuntuaciones(String puntuaciones){
 		
-		this.puntuaciones 		   = puntuaciones;
+		this.puntuaciones = puntuaciones;
 		this.identificadorPeticion = TipoMensaje.HistoricoPuntuaciones;
 	
 	}

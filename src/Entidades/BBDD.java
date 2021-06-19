@@ -13,16 +13,16 @@ public class BBDD {
 		this.conn = conn;		
 	}
 	
-	public Boolean insertarUsuario(String usuario, String contraseña) {
+	public Boolean insertarUsuario(String usuario, String password) {
 		
-		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolverá true, sino false
+		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolvera true, sino false
 		
 		try {
 			  
 			Statement st = conn.createStatement();
 	           
             String INSERT = "INSERT INTO [UsuariosAPP].[dbo].[usuarios] "
-            				+ "VALUES ('"+ usuario +"','"+ contraseña +"',getdate())";
+            				+ "VALUES ('"+ usuario +"','"+ password +"',getdate())";
 
             st.execute(INSERT);         
  
@@ -36,8 +36,8 @@ public class BBDD {
 	
 	public String existeUsuario(String usuario) {
 		
-		//Comprobamos si existe el usuario, si es así nos devolverá su clave y podremos hacer la comparativa, 
-		//si no existe devolverá un string vacio y por tanto querrá decir que no existe
+		//Comprobamos si existe el usuario, si es asi nos devolvera su clave y podremos hacer la comparativa, 
+		//si no existe devolvera un string vacio y por tanto querra decir que no existe
 		
 		try {
 			  
@@ -54,7 +54,7 @@ public class BBDD {
             	usuarioBBDD = res.getString("usuario"); 
             	
             	if(usuario.equals(usuarioBBDD)) {
-            		return res.getString("contraseña"); 
+            		return res.getString("password"); 
             	}
 
             }
@@ -68,8 +68,8 @@ public class BBDD {
 	}			
 	
 	public Integer obtenerIdUsuario(String usuario) {
-		//Comprobamos si existe el usuario, si es así nos devolverá su clave y podremos hacer la comparativa, 
-		//si no existe devolverá un string vacio y por tanto querrá decir que no existe
+		//Comprobamos si existe el usuario, si es asï¿½ nos devolvera su clave y podremos hacer la comparativa, 
+		//si no existe devolvera un string vacio y por tanto querra decir que no existe
 		
 		try {
 			  
@@ -95,7 +95,7 @@ public class BBDD {
 	
 	public Boolean insertarPuntuacion(String usuario, int puntuacion, String usuarioColision) {
 		
-		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolverá true, sino false
+		//Realizamos el insert del nuevo usuario en la BBDD si todo ha ido bien devolvera true, sino false
 		
 		try {
 			  
@@ -116,8 +116,8 @@ public class BBDD {
 	
 	public String obtenerPuntuaciones(String usuario) {
 		
-		//Comprobamos si existe el usuario, si es así nos devolverá su clave y podremos hacer la comparativa, 
-		//si no existe devolverá un string vacio y por tanto querrá decir que no existe
+		//Comprobamos si existe el usuario, si es asï¿½ nos devolvera su clave y podremos hacer la comparativa, 
+		//si no existe devolvera un string vacio y por tanto querra decir que no existe
 		
 		try {
 			  

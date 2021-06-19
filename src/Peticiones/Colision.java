@@ -10,10 +10,9 @@ import Entidades.TipoMensaje;
 public class Colision {
 		
 	private String idSesion;
-	private String usuario;	
 	private String usuarioColision;	
 	private String puntuacion;
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
 	public Colision(String idSesion, String usuarioColision, String puntuacion){
 		

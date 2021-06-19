@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-
+import java.util.UUID;
 
 import Entidades.BBDD;
 import Entidades.Coordenadas;
@@ -33,14 +33,14 @@ public class ManejadorPeticiones implements Runnable {
 	private ArrayList<DatosCliente> listaDatosClientes;
 	private ArrayList<String> listaClientes;
 	private Socket s;
-	private Connection conn; //Conexión a la BBDD
+	private Connection conn; //Conexion a la BBDD
 	
 	public ManejadorPeticiones(ArrayList<DatosCliente> listaDatosClientes, ArrayList<String> listaUsuarios, Socket s, Connection conn) {
 		
 		this.listaDatosClientes = listaDatosClientes;
-		this.listaClientes 		= listaUsuarios;
-		this.s 			  		= s;
-		this.conn 				= conn;
+		this.listaClientes = listaUsuarios;
+		this.s = s;
+		this.conn = conn;
 		
 	}
 	
@@ -68,109 +68,18 @@ public class ManejadorPeticiones implements Runnable {
 					
 						case Autenticacion:
 							
-							Autenticacion peticionAutenticacion = Autenticacion.desaplanar(dis);
-							System.out.println(peticionAutenticacion);
+							RespuestaAutenticacion respuestaAutenticacion = ValidacionesInicioSesion(dis);	
+							respuestaAutenticacion.aplanar(dos);
 							
-							RespuestaAutenticacion mensajeRespuestaRegistro;														
-							
-							//Caso para usuarios no registrados, realizamos la comprobación accediendo a la BBDD 
-							
-							BBDD consulta = new BBDD(conn);
-							
-							//Si se trata de un string vacio no existe usuario
-							
-							if (consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals("")){
-								
-								//Si no existe le añadimos a la BBDD
-								
-								consulta.insertarUsuario(peticionAutenticacion.getUsuario(), peticionAutenticacion.getContraseña());
-																
-								//Le añadimos a nuestra lista de clientes activos
-								
-								listaClientes.add(peticionAutenticacion.getUsuario());
-								
-								System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
-								System.out.println(listaClientes);
-								
-								//Introducimos en nuestra estructura todos los datos de los clientes
-								
-								DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
-								datos.anadirSocket(s);
-																															 																																						
-								mensajeRespuestaRegistro = new RespuestaAutenticacion("Registro");
-								mensajeRespuestaRegistro.generarIdSesion();
-								
-								datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
-								listaDatosClientes.add(datos);
-								
-								//En los datos tenemos guardados el nick, el idSesion, el socket 
-							}
-							
-							else if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals("error")) {
-								mensajeRespuestaRegistro = new RespuestaAutenticacion("Error");
-								//Enviamos mensaje de error
-							}
-		
-							else  //Recibimos una contraseña y comprobamos si coincide con la de la BBDD
-							{
-								
-								if(consulta.existeUsuario(peticionAutenticacion.getUsuario()).equals(peticionAutenticacion.getContraseña())) {
-									
-									
-									//Comprobamos si el usuario ya ha iniciado sesion
-									
-									Boolean sesionIniciada = false;
-									
-									for (DatosCliente datos : listaDatosClientes) {
-								        if (datos.getUsuario().equals(peticionAutenticacion.getUsuario())) {
-								        	sesionIniciada = true;
-								            break;
-								        }								
-								    }
-									
-									if(sesionIniciada) {
-										
-										mensajeRespuestaRegistro = new RespuestaAutenticacion("Duplicado");
-										
-									}
-									else {
-																											
-										//Si coincide guardamos todos los datos del cliente
-									
-										DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
-										datos.anadirSocket(s);
-										
-										System.out.println("------------ LISTA USUARIOS ACTIVOS -------------");
-										System.out.println(listaClientes);								
-										
-										mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");									
-										mensajeRespuestaRegistro.generarIdSesion();
-										
-										datos.setSesion(mensajeRespuestaRegistro.getIdSesion());
-										listaDatosClientes.add(datos);
-									}
-								}
-								else {
-									
-									//Si no coincide mandamos la respuesta KO
-									
-									mensajeRespuestaRegistro = new RespuestaAutenticacion("KO");
-									
-								}													
-							}
-																			
-							mensajeRespuestaRegistro.aplanar(dos);
-							
-							break;
-							
+							break;						
 							
 						case InicioPartida:
 							
 							InicioPartida peticionInicio = InicioPartida.desaplanar(dis);
-							System.out.println(peticionInicio);
+							System.err.println(peticionInicio);
 							
-							//Añadimos las coordenadas a la lista
-							AñadirCoordenadasUsuarioListaClientes(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());
+							//Insertamos las coordenadas a la lista
+							InsertarCoordenadasUsuarioListaClientes(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());
 							
 							//Enviamos las coordenadas, siempre la ultima
 							EnvioCoordenadasServidor(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());														     				        
@@ -180,10 +89,10 @@ public class ManejadorPeticiones implements Runnable {
 						case EnvioCoordCliente:	
 							
 							EnvioCoordCliente peticionCoordCliente = EnvioCoordCliente.desaplanar(dis);							
-							System.out.println(peticionCoordCliente);						
+							System.err.println(peticionCoordCliente);						
 													
-							//Añadimos las coordenadas a la lista
-							AñadirCoordenadasUsuarioListaClientes(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());
+							//Insertamos las coordenadas a la lista
+							InsertarCoordenadasUsuarioListaClientes(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());
 							
 							//Recibimos coordenadas del cliente comprobamos si hay colision con alguna de la lista de clientes que tenemos
 							//Compararemos con las coordenadas de hora igual o superior a cuando se inicio la partida
@@ -220,24 +129,11 @@ public class ManejadorPeticiones implements Runnable {
 						case HistoricoPuntuaciones:	
 							
 							HistoricoPuntuaciones peticionPuntuaciones = HistoricoPuntuaciones.desaplanar(dis);	
-							System.out.println(peticionPuntuaciones);
+							System.err.println(peticionPuntuaciones);											
 							
-							//Obtenemos el historico de puntuaciones de la BBDD
-															
+							String puntuaciones = ObtenerPuntuacionesBBDD(peticionPuntuaciones);
 							
-							//Buscamos dentro de la lista de clientes por el id_Sesion recibido para conseguir el usuario
-							String usuarioPuntuaciones = "";
-							
-							for (DatosCliente datos : listaDatosClientes) {
-						        if (datos.getSesion().equals(peticionPuntuaciones.getIdSesion())) {
-						        	usuarioPuntuaciones = datos.getUsuario();
-						            break;
-						        }
-						    }
-							
-							BBDD consultaPuntuaciones = new BBDD(conn);							
-														
-							RespuestaHistoricoPuntuaciones respuestaPuntuaciones = new RespuestaHistoricoPuntuaciones(consultaPuntuaciones.obtenerPuntuaciones(usuarioPuntuaciones));																					
+							RespuestaHistoricoPuntuaciones respuestaPuntuaciones = new RespuestaHistoricoPuntuaciones(puntuaciones);																					
 							respuestaPuntuaciones.aplanar(dos);
 																																				
 							break;
@@ -245,16 +141,15 @@ public class ManejadorPeticiones implements Runnable {
 						case CerrarSesion:	
 																					
 							CerrarSesion peticionCerrarSesion = CerrarSesion.desaplanar(dis);							
-							System.out.println(peticionCerrarSesion);
+							System.err.println(peticionCerrarSesion);
 
 							//Eliminamos al usuario de la lista de jugadores activos
 														
 							EliminarSesionUsuario(peticionCerrarSesion.getIdSesion());
-							
-																													
+																																			
 							break;
-						default:
-														
+							
+						default:														
 							break;
 						
 					}
@@ -277,6 +172,153 @@ public class ManejadorPeticiones implements Runnable {
 		
 	}
 	
+	private RespuestaAutenticacion ValidacionesInicioSesion(DataInputStream dis) throws Exception {
+		
+		Autenticacion peticionAutenticacion = Autenticacion.desaplanar(dis);
+		System.err.println(peticionAutenticacion);
+		
+		String idSesion = "";
+		RespuestaAutenticacion mensajeRespuestaRegistro;														
+		
+		//Caso para usuarios no registrados, realizamos la comprobacion accediendo a la BBDD 
+		
+		BBDD consulta = new BBDD(conn);
+		
+		//Comprobamos en BBDD el usuario recibido. Si el usuario no existe la password sera "" y tendremos que crearle en BBDD
+		
+		String password = consulta.existeUsuario(peticionAutenticacion.getUsuario());
+		
+		if (password.equals("")){
+			
+			//Si no existe le insertamos a la BBDD y a la lista de clientes activos
+			
+			idSesion = InsertarUsuarioBBDD(peticionAutenticacion, consulta);
+						
+			//Generamos la respuesta
+			
+			
+			mensajeRespuestaRegistro = new RespuestaAutenticacion("Registro");
+			mensajeRespuestaRegistro.setIdSesion(idSesion);
+
+		}
+		
+		else if(password.equals("error")) {
+			mensajeRespuestaRegistro = new RespuestaAutenticacion("Error");
+			//Enviamos mensaje de error
+		}
+
+		else  //Recibimos una contrasena y comprobamos si coincide con la de la BBDD
+		{
+			
+			if(password.equals(peticionAutenticacion.getPassword())) {
+							
+				//Comprobamos si el usuario ya ha iniciado sesion por si quiere entrar con sesion duplicada
+								
+				if(ComprobarUsuarioInicioSesion(peticionAutenticacion.getUsuario())) {
+					
+					mensajeRespuestaRegistro = new RespuestaAutenticacion("Duplicado");
+					
+				}
+				else {
+																						
+					//Si coincide guardamos todos los datos del cliente
+					
+				    idSesion = GuardarDatosCliente(peticionAutenticacion);
+					
+					mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");
+					mensajeRespuestaRegistro.setIdSesion(idSesion);
+				}
+			}
+			else {
+				
+				//Si no coincide mandamos la respuesta KO
+				
+				mensajeRespuestaRegistro = new RespuestaAutenticacion("KO");
+				
+			}													
+		}
+														
+		return mensajeRespuestaRegistro;
+	}
+	
+	private String GenerarIdSesion() {
+		
+	    return UUID.randomUUID().toString();	 
+	    
+	} 
+	
+	private String InsertarUsuarioBBDD(Autenticacion peticionAutenticacion, BBDD consulta) {
+		
+		//insertamos a la BBDD
+		
+		consulta.insertarUsuario(peticionAutenticacion.getUsuario(), peticionAutenticacion.getPassword());
+										
+		//Le insertamos a nuestra lista de clientes activos
+		
+		listaClientes.add(peticionAutenticacion.getUsuario());
+		
+		System.err.println("------------ LISTA USUARIOS ACTIVOS -------------");
+		System.err.println(listaClientes);
+		
+		//Introducimos en nuestra estructura todos los datos de los clientes
+		
+		String idSesion = GenerarIdSesion();
+		
+		DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
+		datos.anadirSocket(s);
+																									 																																								
+		datos.setSesion(idSesion);
+		listaDatosClientes.add(datos);
+		
+		//En los datos tenemos guardados el nick, el idSesion, el socket 
+		
+		return idSesion;
+	}
+	
+	private String GuardarDatosCliente(Autenticacion peticionAutenticacion) {
+		
+		String idSesion = GenerarIdSesion();
+		
+		DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
+		datos.anadirSocket(s);
+		
+		System.err.println("------------ LISTA USUARIOS ACTIVOS -------------");
+		System.err.println(listaClientes);										
+		datos.setSesion(idSesion);
+		listaDatosClientes.add(datos);
+		
+		return idSesion;
+		
+	}
+	
+	private boolean ComprobarUsuarioInicioSesion(String usuario) {
+		
+		Boolean sesionIniciada = false;
+		
+		for (DatosCliente datos : listaDatosClientes) {
+	        if (datos.getUsuario().equals(usuario)) {
+	        	sesionIniciada = true;
+	            break;
+	        }								
+	    }
+		
+		return sesionIniciada;
+	}
+	
+	private String ObtenerUsuarioPorIdSesion(String idSesion) {
+		
+		String usuario = "";
+		
+		for (DatosCliente datos : listaDatosClientes) {
+	        if (datos.getSesion().equals(idSesion)) {
+	        	usuario = datos.getUsuario();
+	            break;
+	        }
+	    }
+		
+		return usuario;
+	}
+	
 	private void EnvioCoordenadasServidor(String idSesion, String coordenadas) {
 		
 		
@@ -286,7 +328,7 @@ public class ManejadorPeticiones implements Runnable {
 		//Los usuarios estaran delimitados por: |
 		//Las coordenadas entre ellas por | y de los distintos usuarios por @
 		
-		//Enviamos todas, luego el cliente pasará de las suyas ya que hemos guardado mi nick y de ese hay que pasar.
+		//Enviamos todas, luego el cliente pasarï¿½ de las suyas ya que hemos guardado mi nick y de ese hay que pasar.
 		
 		//La logica de las colisiones la hara el cliente cuando el servidor mande las coordenadas de todos			
 		
@@ -347,7 +389,7 @@ public class ManejadorPeticiones implements Runnable {
 	        	datosInicio = datos;
 	            break;
 	        }
-	        //Calculamos el indice para saber en que posicion está a la hora de actualizar
+	        //Calculamos el indice para saber en que posicion estï¿½ a la hora de actualizar
 	        indice++;
 	    }
 		
@@ -378,7 +420,7 @@ public class ManejadorPeticiones implements Runnable {
 	        	datosInicio = datos;
 	            break;
 	        }
-	        //Calculamos el indice para saber en que posicion está a la hora de actualizar
+	        //Calculamos el indice para saber en que posicion estï¿½ a la hora de actualizar
 	        indice++;
 	    }
 		
@@ -391,7 +433,8 @@ public class ManejadorPeticiones implements Runnable {
 		
 	}
 
-	private void AñadirCoordenadasUsuarioListaClientes(String idSesion, String coordenadas) {
+	private void InsertarCoordenadasUsuarioListaClientes(String idSesion, String coordenadas) {
+		
 		DatosCliente datosInicio = null;
 		int indice = 0;
 		
@@ -400,7 +443,7 @@ public class ManejadorPeticiones implements Runnable {
 		for (DatosCliente datos : listaDatosClientes) {
 	        if (datos.getSesion().equals(idSesion)) {
 	        	datosInicio = datos;
-	        	//Obtenemos el indice para saber en que posicion está a la hora de actualizar
+	        	//Obtenemos el indice para saber en que posicion estï¿½ a la hora de actualizar
 	        	indice = listaDatosClientes.indexOf(datos);
 	            break;
 	        }
@@ -416,15 +459,15 @@ public class ManejadorPeticiones implements Runnable {
 			
 			if(datosInicio.getEstado().equals("Inactivo")) {				
 				datosInicio.setEstado("Activo"); 
-				datosInicio.setHora(LocalDateTime.now()); //Añadimos la hora, solo compararemos 
+				datosInicio.setHora(LocalDateTime.now()); //Aï¿½adimos la hora, solo compararemos 
 				//con las coordenadas superiores a esa hora ya que ahi es cuando comenzamos a jugar
-				//El usuario ahora estará con estado activo (ha empezado la partida)
+				//El usuario ahora estarï¿½ con estado activo (ha empezado la partida)
 			}
 			
 			
 			//guardamos las coordenadas
 					
-			datosInicio.añadirCoordenadas(coordenadas);
+			datosInicio.insertarCoordenadas(coordenadas);
 
 			//Actualizamos el registro dentro de la listaDatosClientes en la posicion de la variable indice
 			
@@ -468,21 +511,7 @@ public class ManejadorPeticiones implements Runnable {
 		
 		return datosCli;
 	}
-	/*
-	private DatosCliente ObtenerDatosClientePorUsuario(String usuario) {
-		
-		DatosCliente datosCli = null;
-		
-		for (DatosCliente datos : listaDatosClientes) {
-	        if (datos.getUsuario().equals(usuario)) {
-	        	datosCli = datos;
-	            break;
-	        }
-	    }
-		
-		return datosCli;
-	}
-	*/
+
 	private LocalDateTime ObtenerHoraInicioPartida(String idSesion) {
 		
 		for (DatosCliente datosCliente : listaDatosClientes) {
@@ -493,5 +522,17 @@ public class ManejadorPeticiones implements Runnable {
 		
 		return null;
 		
+	}
+
+	private String ObtenerPuntuacionesBBDD(HistoricoPuntuaciones peticionPuntuaciones) {
+		
+		//Obtenemos el historico de puntuaciones de la BBDD
+		
+		//Buscamos dentro de la lista de clientes por el id_Sesion recibido para conseguir el usuario
+		String usuarioPuntuaciones = ObtenerUsuarioPorIdSesion(peticionPuntuaciones.getIdSesion());					
+		
+		BBDD consultaPuntuaciones = new BBDD(conn);							
+									
+		return consultaPuntuaciones.obtenerPuntuaciones(usuarioPuntuaciones);																					
 	}
 }

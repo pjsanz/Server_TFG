@@ -1,6 +1,5 @@
 package Entidades;
 
-
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
@@ -13,14 +12,14 @@ public class DatosCliente {
 	private String sesion; 
 	private String estado;
 	private LocalDateTime hora;
-
+	
 	private ArrayList<Coordenadas> coordenadas;
 	private Socket s;
 	
 	public DatosCliente(String usuario){
 		
-		this.usuario =  usuario;
-		this.estado  = "Inactivo";
+		this.usuario = usuario;
+		this.estado = "Inactivo";
 		this.coordenadas = new ArrayList<Coordenadas>();
 		
 	}
@@ -67,7 +66,7 @@ public class DatosCliente {
 		this.estado = estado;
 	}
 	
-	public void añadirCoordenadas(String coordenadas) {
+	public void insertarCoordenadas(String coordenadas) {
 		
 		String[] arrayCoord = coordenadas.split(",", -1);
 		
@@ -76,7 +75,7 @@ public class DatosCliente {
 		Coordenadas coord = new Coordenadas(arrayCoord[0].toString(),arrayCoord[1].toString(), LocalDateTime.now());
 		
 		this.coordenadas.add(coord);
-		
+
 	}
 
 	public Boolean buscarCoordenada(String coordenadaBusqueda, LocalDateTime horaInicio) {
@@ -103,10 +102,8 @@ public class DatosCliente {
 		this.coordenadas = coordenadas;
 	}
 
-	public ArrayList<Coordenadas> getCoordenadas() {
-		
-		return this.coordenadas;
-		
+	public ArrayList<Coordenadas> getCoordenadas() {		
+		return this.coordenadas;		
 	}
 
 	public LocalDateTime getHora() {

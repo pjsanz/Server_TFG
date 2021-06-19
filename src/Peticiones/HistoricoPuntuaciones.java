@@ -10,11 +10,11 @@ import Entidades.TipoMensaje;
 public class HistoricoPuntuaciones {
 	
 	private String idSesion;
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
 	public HistoricoPuntuaciones(String idSesion){
 		
-		this.idSesion			   = idSesion;
+		this.idSesion = idSesion;
 		this.identificadorPeticion = TipoMensaje.HistoricoPuntuaciones;
 	
 	}

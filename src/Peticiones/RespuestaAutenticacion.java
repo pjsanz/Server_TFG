@@ -3,7 +3,6 @@ package Peticiones;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.UUID;
 
 import Entidades.LittleEndian;
 import Entidades.TipoMensaje;
@@ -17,8 +16,8 @@ public class RespuestaAutenticacion {
 	
 	public RespuestaAutenticacion(String respuesta){
 		
-		this.respuesta			   = respuesta;
-		this.idSesion 			   = "0";
+		this.respuesta = respuesta;
+		this.idSesion = "0";
 		this.identificadorPeticion = TipoMensaje.RespuestaAutenticacion;
 	
 	}
@@ -92,7 +91,4 @@ public class RespuestaAutenticacion {
 		this.idSesion = idSesion;
 	}
 		
-	public void generarIdSesion() {
-	    this.idSesion = UUID.randomUUID().toString();	    
-	} 
 }

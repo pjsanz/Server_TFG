@@ -10,11 +10,11 @@ import Entidades.TipoMensaje;
 public class CerrarSesion {
 	
 	private String idSesion;
-	private TipoMensaje    identificadorPeticion;
+	private TipoMensaje identificadorPeticion;
 	
 	public CerrarSesion(String idSesion){
 		
-		this.idSesion			   = idSesion;
+		this.idSesion = idSesion;
 		this.identificadorPeticion = TipoMensaje.CerrarSesion;
 	
 	}
