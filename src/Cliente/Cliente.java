@@ -83,29 +83,19 @@ public class Cliente {
 			while(true){
 								
 				String linea = bf.readLine();
-				/*
-				if (linea==null){
-					
-					bos.close();
-					dos.close();
-					bis.close();
-					dis.close();
-					this.s.close();
-					
-					break;
-				}
-				*/
-				
+						
 				if (linea!=null){
 				
 					String mensaje[] = linea.split(" ");
 					
-					int longitud = mensaje.length;
-					
+					int cabeceraMensaje = Integer.parseInt(mensaje[0]);
 					try {
-						if (mensaje[0].equals("0")&&(!logeado)){
+					
+					switch (cabeceraMensaje) {
+					
+						case 0:
 							
-							if (longitud==3){
+							if (!logeado){
 								
 								Autenticacion peticion = new Autenticacion(mensaje[1], mensaje[2]);
 								peticion.aplanar(dos);
@@ -113,47 +103,65 @@ public class Cliente {
 								peticionEnviada=true;
 								
 							}else{
-								System.out.println("El nick debe ser una unica palabra sin espacios");
+																
+								System.err.println("Ya estas logeado");
 							}
-						}else{
+							break;		
+						
+						case 2:
 							
-							if (mensaje[0].equals("login")){
-								System.out.println("Ya estas logeado");
+							if (logeado){
+								
+								//Parte de coordenadas sustituir en app por las coordenadas actuales
+								
+								Integer latitudCoord = new Random().nextInt(6);
+								Integer longitudCoord = new Random().nextInt(6);
+								
+								String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
+								
+								InicioPartida peticion = new InicioPartida(idSesion, ejemploCoord);											
+								
+								peticion.aplanar(dos);						
+								
+								peticionEnviada=true;
+	
+							}else{								
+								System.err.println("Debes estar logeado para realizar esta acción");
 							}
-						}
+							
+							break;
+																																														
+						case 7:
 						
-						if (mensaje[0].equals("2")&&(logeado)){
-												
-							//Parte de coordenadas sustituir en app por las coordenadas actuales
-							
-							Integer latitudCoord = new Random().nextInt(6);
-							Integer longitudCoord = new Random().nextInt(6);
-							
-							String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
-							
-							InicioPartida peticion = new InicioPartida(idSesion, ejemploCoord);											
-							
-							peticion.aplanar(dos);						
-							
-							peticionEnviada=true;
-						}
+							if (logeado){
+								
+								HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(idSesion);													
+								peticion.aplanar(dos);		
+								
+								peticionEnviada=true;
+								
+							}else{
+																
+								System.err.println("Debes estar logeado para realizar esta acción");
+							}
+							break;	
 						
-						if (mensaje[0].equals("7")&&(logeado)){
+						case 8:
+
+							if (logeado){
+								
+								CerrarSesion peticion = new CerrarSesion(idSesion);													
+								peticion.aplanar(dos);		
+								
+								logeado 	    = false;
+								peticionEnviada = true;
 							
-							HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(idSesion);													
-							peticion.aplanar(dos);		
-							
-							peticionEnviada=true;
+							}else{						
+								System.err.println("Debes estar logeado para realizar esta acción");
+							}
+							break;	
 						}
-						
-						if (mensaje[0].equals("8")&&(logeado)){
-							
-							CerrarSesion peticion = new CerrarSesion(idSesion);													
-							peticion.aplanar(dos);		
-							
-							logeado 	    = false;
-							peticionEnviada = true;
-						}												
+										
 						
 						if ((peticionEnviada)&&(!logeado)&&(mensaje[0].equals("0"))){ // Si el mensaje es 0 se que he el login
 							
