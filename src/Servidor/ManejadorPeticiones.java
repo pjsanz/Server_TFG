@@ -31,14 +31,12 @@ import Peticiones.RespuestaHistoricoPuntuaciones;
 public class ManejadorPeticiones implements Runnable {
 	
 	private ArrayList<DatosCliente> listaDatosClientes;
-	private ArrayList<String> listaClientes;
 	private Socket s;
 	private Connection conn; //Conexion a la BBDD
 	
 	public ManejadorPeticiones(ArrayList<DatosCliente> listaDatosClientes, ArrayList<String> listaUsuarios, Socket s, Connection conn) {
 		
 		this.listaDatosClientes = listaDatosClientes;
-		this.listaClientes = listaUsuarios;
 		this.s = s;
 		this.conn = conn;
 		
@@ -67,7 +65,7 @@ public class ManejadorPeticiones implements Runnable {
 					switch (tipo) {
 					
 						case Autenticacion:
-							
+							System.out.println("Peticion recibida");
 							RespuestaAutenticacion respuestaAutenticacion = ValidacionesInicioSesion(dis);	
 							respuestaAutenticacion.aplanar(dos);
 							
@@ -202,7 +200,7 @@ public class ManejadorPeticiones implements Runnable {
 
 		}
 		
-		else if(password.equals("error")) {
+		else if(password.equals("-1")) {
 			mensajeRespuestaRegistro = new RespuestaAutenticacion("Error");
 			//Enviamos mensaje de error
 		}
@@ -224,7 +222,6 @@ public class ManejadorPeticiones implements Runnable {
 					//Si coincide guardamos todos los datos del cliente
 					
 				    idSesion = GuardarDatosCliente(peticionAutenticacion);
-					
 					mensajeRespuestaRegistro = new RespuestaAutenticacion("OK");
 					mensajeRespuestaRegistro.setIdSesion(idSesion);
 				}
@@ -238,6 +235,7 @@ public class ManejadorPeticiones implements Runnable {
 			}													
 		}
 														
+		System.out.println(mensajeRespuestaRegistro.getIdSesion());
 		return mensajeRespuestaRegistro;
 	}
 	
@@ -251,14 +249,7 @@ public class ManejadorPeticiones implements Runnable {
 		
 		//insertamos a la BBDD
 		
-		consulta.insertarUsuario(peticionAutenticacion.getUsuario(), peticionAutenticacion.getPassword());
-										
-		//Le insertamos a nuestra lista de clientes activos
-		
-		listaClientes.add(peticionAutenticacion.getUsuario());
-		
-		System.err.println("------------ LISTA USUARIOS ACTIVOS -------------");
-		System.err.println(listaClientes);
+		consulta.insertarUsuario(peticionAutenticacion.getUsuario(), peticionAutenticacion.getPassword());											
 		
 		//Introducimos en nuestra estructura todos los datos de los clientes
 		
@@ -281,9 +272,7 @@ public class ManejadorPeticiones implements Runnable {
 		
 		DatosCliente datos = new DatosCliente(peticionAutenticacion.getUsuario());
 		datos.anadirSocket(s);
-		
-		System.err.println("------------ LISTA USUARIOS ACTIVOS -------------");
-		System.err.println(listaClientes);										
+										
 		datos.setSesion(idSesion);
 		listaDatosClientes.add(datos);
 		

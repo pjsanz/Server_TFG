@@ -63,7 +63,7 @@ public class BBDD {
             
         } catch (SQLException ex) {
             ex.printStackTrace();
-            return "error";
+            return "-1";
         }
 	}			
 	
@@ -102,7 +102,7 @@ public class BBDD {
 			Statement st = conn.createStatement();
 	           
             String INSERT = "INSERT INTO [UsuariosAPP].[dbo].[puntuaciones] "
-            				+ "VALUES ('"+ obtenerIdUsuario(usuario) +"','"+ puntuacion +"','"+ usuarioColision +"',getdate())";
+            				+ "VALUES ('"+ obtenerIdUsuario(usuario) +"','"+ puntuacion +"','"+ obtenerIdUsuario(usuarioColision) +"',getdate())";
 
             st.execute(INSERT);         
  
@@ -123,7 +123,10 @@ public class BBDD {
 			  
 			Statement st = conn.createStatement();
 			
-			String SELECT = "SELECT * FROM [UsuariosApp].[dbo].[puntuaciones] WHERE id_usuario ='"+ obtenerIdUsuario(usuario) +"'";
+			String SELECT = "SELECT pun.puntuacion, pun.fecha_puntuacion, usu.usuario AS usuarioColision"
+					+ "FROM [UsuariosApp].[dbo].[puntuaciones] pun"
+					+ "JOIN [UsuariosApp].[dbo].[usuarios] usu ON usu.id_usuario = pun.id_usuarioColision"
+					+ "WHERE id_usuario ='"+ obtenerIdUsuario(usuario) +"'";
             
             ResultSet res = st.executeQuery(SELECT); 
             

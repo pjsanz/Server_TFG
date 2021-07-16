@@ -38,8 +38,9 @@ public class Autenticacion {
 			
 			longitud = this.password.getBytes("UTF-8").length;
 			salida.write(LittleEndian.empaquetar(longitud));	
-			
-			salida.write(cifra(this.password));
+			salida.write(this.password.getBytes("UTF-8"));
+		
+			//salida.write(cifra(this.password));
 						
 			salida.flush();
 			
@@ -70,7 +71,10 @@ public class Autenticacion {
 			
 			byte[] peticionBytes2 = new byte[16];
 			entrada.read(peticionBytes2);
-			String password = descifra(peticionBytes2);					
+			
+			String password = new String(peticionBytes2, "UTF-8");
+			
+			//String password = descifra(peticionBytes2);					
 			
 			peticion = new Autenticacion(nick, password);
 			

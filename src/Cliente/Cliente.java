@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import Entidades.Coordenadas;
 import Entidades.DatosCliente;
 import Entidades.LittleEndian;
 import Entidades.TipoMensaje;
@@ -29,8 +30,7 @@ public class Cliente {
 
 	private Socket s = null;
 	private BufferedReader bf;
-	private String idSesion;	
-	private String miUsuario;
+	private DatosCliente misDatos;
 	private ArrayList<DatosCliente> listaDatosRivales;
 	boolean logeado;
 	boolean juegoIniciado;
@@ -52,7 +52,6 @@ public class Cliente {
 
 		logeado = false;
 
-		miUsuario = "";
 		listaDatosRivales = new ArrayList<DatosCliente>();
 
 		System.out.println("Tipos de Peticiones cliente (App Android):");	
@@ -124,7 +123,7 @@ public class Cliente {
 
 						String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
 
-						InicioPartida peticion = new InicioPartida(idSesion, ejemploCoord);
+						InicioPartida peticion = new InicioPartida(misDatos.getSesion(), ejemploCoord);
 						peticion.aplanar(dos);
 						
 						ObtenerRespuestaInicio(dis, dos);
@@ -139,7 +138,7 @@ public class Cliente {
 
 					if (logeado){
 
-						HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(idSesion);													
+						HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(misDatos.getSesion());													
 						peticion.aplanar(dos);		
 
 						ObtenerRespuestaHistorico(linea,dis);
@@ -154,7 +153,7 @@ public class Cliente {
 
 					if (logeado){
 
-						CerrarSesion peticion = new CerrarSesion(idSesion);													
+						CerrarSesion peticion = new CerrarSesion(misDatos.getSesion());													
 						peticion.aplanar(dos);		
 
 						logeado = false;
@@ -180,21 +179,23 @@ public class Cliente {
 
 			RespuestaAutenticacion respuestaPeticion = RespuestaAutenticacion.desaplanar(dis);
 
-			if (respuestaPeticion.getRespuesta().equals("OK")){
+			if (respuestaPeticion.getRespuesta().equals("OK") || respuestaPeticion.getRespuesta().equals("Registro")){
 
 				System.err.println("Autenticacion completada correctamente!!!");
 
 				logeado = true;
-				miUsuario = linea.split(" ")[1];
-				idSesion = respuestaPeticion.getIdSesion();
-
-				System.err.println("Usuario: " + miUsuario);
-				System.err.println("Id Sesion: " + idSesion);
+				
+				misDatos = new DatosCliente(linea.split(" ")[1]);
+				
+				misDatos.setSesion(respuestaPeticion.getIdSesion());
+				
+				System.err.println("Usuario: " + misDatos.getUsuario());
+				System.err.println("Id Sesion: " + misDatos.getSesion());
 
 			}
 			else if (respuestaPeticion.getRespuesta().equals("KO")){
 				
-				System.err.println("Password incorrecto, nick ya existente!");					
+				System.err.println("Password incorrecto, usuario ya existente!");					
 			}
 			else if (respuestaPeticion.getRespuesta().equals("duplicado")){
 				
@@ -231,7 +232,7 @@ public class Cliente {
 			
 			String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
 			
-			EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
+			EnvioCoordCliente peticion = new EnvioCoordCliente(misDatos.getSesion(), ejemploCoord);											
 			
 			peticion.aplanar(dos);	
 			 
@@ -285,7 +286,7 @@ public class Cliente {
 						
 						String ejemploCoord = latitudCoord.toString() + "," +  longitudCoord.toString();
 						
-						EnvioCoordCliente peticion = new EnvioCoordCliente(idSesion, ejemploCoord);											
+						EnvioCoordCliente peticion = new EnvioCoordCliente(misDatos.getSesion(), ejemploCoord);											
 						
 						peticion.aplanar(dos);					
 						
@@ -303,6 +304,7 @@ public class Cliente {
 						//Reiniciamos los parametros del juego para el cliente
 						
 						listaDatosRivales = new ArrayList<DatosCliente>();
+						misDatos.setCoordenadas(new ArrayList<Coordenadas>());
 						juegoIniciado = false;
 						
 						break;
@@ -356,7 +358,7 @@ public class Cliente {
 			
 		for(int i = 0; i < usuarios.length; i++) {
 		
-			if(!usuarios[i].equals(miUsuario)) {
+			if(!usuarios[i].equals(misDatos.getUsuario())) {
 
 				//Comprobamos si el usuario ya estaba anadido para no anadirle de nuevo
 				//Solamente introducimos su ultima coordenada
