@@ -141,7 +141,7 @@ public class Cliente {
 						HistoricoPuntuaciones peticion = new HistoricoPuntuaciones(misDatos.getSesion());													
 						peticion.aplanar(dos);		
 
-						ObtenerRespuestaHistorico(linea,dis);
+						ObtenerRespuestaHistorico(dis);
 
 					}else{
 														
@@ -317,7 +317,7 @@ public class Cliente {
 		}
 	}
 	
-	private void ObtenerRespuestaHistorico(String linea, DataInputStream dis) throws IOException {
+	private void ObtenerRespuestaHistorico(DataInputStream dis) throws IOException {
 
 		byte [] bytes = new byte[4];
 		int n = -1;

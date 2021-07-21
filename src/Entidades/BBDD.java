@@ -124,9 +124,9 @@ public class BBDD {
 			Statement st = conn.createStatement();
 			
 			String SELECT = "SELECT pun.puntuacion, pun.fecha_puntuacion, usu.usuario AS usuarioColision"
-					+ "FROM [UsuariosApp].[dbo].[puntuaciones] pun"
-					+ "JOIN [UsuariosApp].[dbo].[usuarios] usu ON usu.id_usuario = pun.id_usuarioColision"
-					+ "WHERE id_usuario ='"+ obtenerIdUsuario(usuario) +"'";
+					+ " FROM [UsuariosApp].[dbo].[puntuaciones] pun"
+					+ " JOIN [UsuariosApp].[dbo].[usuarios] usu ON usu.id_usuario = pun.id_usuarioColision"
+					+ " WHERE pun.id_usuario ='"+ obtenerIdUsuario(usuario) +"'";
             
             ResultSet res = st.executeQuery(SELECT); 
             
@@ -134,8 +134,8 @@ public class BBDD {
             
             while(res.next()) {
             	
-            	puntuaciones = puntuaciones + res.getString("puntuacion") + "|" + res.getString("usuarioColision")
-            				 + "|" + res.getString("fecha_puntuacion") + "@"; 
+            	puntuaciones = puntuaciones + res.getString("puntuacion") + " | " + res.getString("usuarioColision")
+            				 + " | " + res.getString("fecha_puntuacion") + "@"; 
 
             }
 					

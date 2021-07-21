@@ -349,9 +349,9 @@ public class ManejadorPeticiones implements Runnable {
 		
 		try {
 			
-			DatosCliente datosCli = ObtenerDatosClientePorIdSesion(idSesion);
+			//DatosCliente datosCli = ObtenerDatosClientePorIdSesion(idSesion);
 			
-			Socket s = datosCli.getSocket();
+			//Socket s = datosCli.getSocket();
 			
 			BufferedOutputStream bos = new BufferedOutputStream(s.getOutputStream());
 			DataOutputStream 	 dos = new DataOutputStream(bos);
