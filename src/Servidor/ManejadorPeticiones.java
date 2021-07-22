@@ -77,7 +77,7 @@ public class ManejadorPeticiones implements Runnable {
 							System.err.println(peticionInicio);
 							
 							//Insertamos las coordenadas a la lista
-							InsertarCoordenadasUsuarioListaClientes(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());
+							InsertarCoordenadasUsuarioListaClientes(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas(), "Inicio");
 							
 							//Enviamos las coordenadas, siempre la ultima
 							EnvioCoordenadasServidor(peticionInicio.getIdSesion(), peticionInicio.getCoordenadas());														     				        
@@ -90,7 +90,7 @@ public class ManejadorPeticiones implements Runnable {
 							System.err.println(peticionCoordCliente);						
 													
 							//Insertamos las coordenadas a la lista
-							InsertarCoordenadasUsuarioListaClientes(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas());
+							InsertarCoordenadasUsuarioListaClientes(peticionCoordCliente.getIdSesion(), peticionCoordCliente.getCoordenadas(), "");
 							
 							//Recibimos coordenadas del cliente comprobamos si hay colision con alguna de la lista de clientes que tenemos
 							//Compararemos con las coordenadas de hora igual o superior a cuando se inicio la partida
@@ -335,7 +335,7 @@ public class ManejadorPeticiones implements Runnable {
 		for (DatosCliente datos : listaDatosClientes) {
 			//Si el usuario esta activo en el juego empezamos a rellenar los strings a enviar		
 			
-	        if (datos.getEstado().equals("Activo") ){
+	        if (datos.getEstado().equals("Activo") && !datos.getSesion().equals(idSesion)){
 	        	
 	        	usuarios = usuarios + datos.getUsuario() + "&";
 	        	
@@ -375,11 +375,11 @@ public class ManejadorPeticiones implements Runnable {
 		
 		for (DatosCliente datos : listaDatosClientes) {
 	        if (datos.getSesion().equals(idSesion)) {
+	        	indice = listaDatosClientes.indexOf(datos);
 	        	datosInicio = datos;
 	            break;
 	        }
-	        //Calculamos el indice para saber en que posicion est� a la hora de actualizar
-	        indice++;
+
 	    }
 		
 		//Si hemos encontrado la sesion iniciada 
@@ -406,11 +406,10 @@ public class ManejadorPeticiones implements Runnable {
 		
 		for (DatosCliente datos : listaDatosClientes) {
 	        if (datos.getSesion().equals(idSesion)) {
+	        	indice = listaDatosClientes.indexOf(datos);
 	        	datosInicio = datos;
 	            break;
 	        }
-	        //Calculamos el indice para saber en que posicion est� a la hora de actualizar
-	        indice++;
 	    }
 		
 		//Si hemos encontrado la sesion iniciada 
@@ -422,7 +421,7 @@ public class ManejadorPeticiones implements Runnable {
 		
 	}
 
-	private void InsertarCoordenadasUsuarioListaClientes(String idSesion, String coordenadas) {
+	private void InsertarCoordenadasUsuarioListaClientes(String idSesion, String coordenadas, String llamada) {
 		
 		DatosCliente datosInicio = null;
 		int indice = 0;
@@ -446,7 +445,7 @@ public class ManejadorPeticiones implements Runnable {
 			//Miramos si el usuario esta activo para ver si es un mensaje de inicio de partida
 			//Si es asi pasamos el usuario activo, sino simplemente es una peticion de coordenadas
 			
-			if(datosInicio.getEstado().equals("Inactivo")) {				
+			if(llamada.equals("Inicio") && datosInicio.getEstado().equals("Inactivo")) {				
 				datosInicio.setEstado("Activo"); 
 				datosInicio.setHora(LocalDateTime.now()); //A�adimos la hora, solo compararemos 
 				//con las coordenadas superiores a esa hora ya que ahi es cuando comenzamos a jugar
